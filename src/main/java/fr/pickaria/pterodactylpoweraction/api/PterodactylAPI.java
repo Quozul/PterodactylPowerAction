@@ -1,5 +1,6 @@
 package fr.pickaria.pterodactylpoweraction.api;
 
+import com.google.gson.Gson;
 import fr.pickaria.pterodactylpoweraction.Configuration;
 import fr.pickaria.pterodactylpoweraction.PowerActionAPI;
 import org.slf4j.Logger;
@@ -14,9 +15,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 public class PterodactylAPI implements PowerActionAPI {
+    private static final Gson GSON = new Gson();
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final Logger logger;
     private final Configuration configuration;
@@ -81,9 +82,19 @@ public class PterodactylAPI implements PowerActionAPI {
                     if (response.statusCode() != 200) {
                         return false;
                     }
-                    String body = response.body();
-                    Pattern pattern = Pattern.compile("\\\"name\\\"\\s*:\\s*\\\"" + Pattern.quote(playerName) + "\\\"");
-                    return pattern.matcher(body).find();
+                    try {
+                        WhitelistEntry[] entries = GSON.fromJson(response.body(), WhitelistEntry[].class);
+                        if (entries != null) {
+                            for (WhitelistEntry entry : entries) {
+                                if (playerName.equalsIgnoreCase(entry.name())) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to parse whitelist for server {}", server, e);
+                    }
+                    return false;
                 });
     }
 
