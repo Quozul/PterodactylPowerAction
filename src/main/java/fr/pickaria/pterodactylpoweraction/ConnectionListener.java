@@ -66,13 +66,13 @@ public class ConnectionListener {
                         .join();
                 if (!whitelisted) {
                     event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                    event.getPlayer().disconnect(Component.text("You are not whitelisted on this server."));
+                    event.getPlayer().disconnect(Component.translatable("whitelist.not.whitelisted"));
                     return;
                 }
             } catch (Exception e) {
                 logger.error("Failed to check whitelist for server {}", serverName, e);
                 event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                event.getPlayer().disconnect(Component.text("Whitelist verification failed."));
+                event.getPlayer().disconnect(Component.translatable("whitelist.verification.failed"));
                 return;
             }
         }

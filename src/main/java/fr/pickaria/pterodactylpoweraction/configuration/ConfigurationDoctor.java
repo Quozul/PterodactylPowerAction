@@ -106,6 +106,14 @@ public class ConfigurationDoctor {
                         isValid = false;
                     }
 
+                    if (value instanceof Map serverConfig) {
+                        Object whitelist = serverConfig.get("whitelist");
+                        if (whitelist != null && !(whitelist instanceof Boolean)) {
+                            logger.warn("'servers.{}.whitelist' must be a boolean if specified.", key);
+                            isValid = false;
+                        }
+                    }
+
                     if (apiType == APIType.PTERODACTYL) {
                         String uuid = null;
                         if (value instanceof String) {
