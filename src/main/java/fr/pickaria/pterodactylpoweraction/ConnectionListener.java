@@ -58,6 +58,25 @@ public class ConnectionListener {
         RegisteredServer originalServer = event.getOriginalServer();
         RegisteredServer previousServer = event.getPreviousServer();
 
+        String serverName = originalServer.getServerInfo().getName();
+        if (configurationLoader.getConfiguration().shouldCheckWhitelist(serverName)) {
+            try {
+                boolean whitelisted = configurationLoader.getAPI()
+                        .isPlayerWhitelisted(serverName, event.getPlayer().getUsername())
+                        .join();
+                if (!whitelisted) {
+                    event.setResult(ServerPreConnectEvent.ServerResult.denied());
+                    event.getPlayer().disconnect(Component.text("You are not whitelisted on this server."));
+                    return;
+                }
+            } catch (Exception e) {
+                logger.error("Failed to check whitelist for server {}", serverName, e);
+                event.setResult(ServerPreConnectEvent.ServerResult.denied());
+                event.getPlayer().disconnect(Component.text("Whitelist verification failed."));
+                return;
+            }
+        }
+
         shutdownManager.cancelTask(originalServer);
 
         if (isReachable(originalServer)) {

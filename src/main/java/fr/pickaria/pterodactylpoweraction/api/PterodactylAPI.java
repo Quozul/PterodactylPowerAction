@@ -7,11 +7,14 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 public class PterodactylAPI implements PowerActionAPI {
     private final HttpClient httpClient = HttpClient.newHttpClient();
@@ -45,6 +48,43 @@ public class PterodactylAPI implements PowerActionAPI {
         String identifier = serverIdentifier.get();
         logger.info("Starting server {}", server);
         return makeRequest(identifier, "start");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isPlayerWhitelisted(String server, String playerName) {
+        Optional<String> serverIdentifier = configuration.getPterodactylServerIdentifier(server);
+        if (serverIdentifier.isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        String identifier = serverIdentifier.get();
+        String baseUrl = configuration.getPterodactylClientApiBaseURL().orElse("");
+        if (baseUrl.isEmpty() || configuration.getPterodactylApiKey().isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        HttpRequest request;
+        try {
+            String fileParam = URLEncoder.encode("/whitelist.json", StandardCharsets.UTF_8);
+            URI uri = new URI(baseUrl + "/servers/" + identifier + "/files/contents?file=" + fileParam);
+            request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Authorization", "Bearer " + configuration.getPterodactylApiKey().get())
+                    .GET()
+                    .build();
+        } catch (URISyntaxException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+
+        return sendRequest(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    if (response.statusCode() != 200) {
+                        return false;
+                    }
+                    String body = response.body();
+                    Pattern pattern = Pattern.compile("\\\"name\\\"\\s*:\\s*\\\"" + Pattern.quote(playerName) + "\\\"");
+                    return pattern.matcher(body).find();
+                });
     }
 
     public CompletableFuture<Boolean> exists(String server) {
