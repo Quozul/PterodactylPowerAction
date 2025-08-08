@@ -70,6 +70,11 @@ public class YamlConfiguration implements Configuration {
             Object configuration = getServerConfiguration(serverName);
             if (configuration instanceof String) {
                 return Optional.of((String) configuration);
+            } else if (configuration instanceof Map serverConfiguration) {
+                Object identifier = serverConfiguration.get("identifier");
+                if (identifier instanceof String) {
+                    return Optional.of((String) identifier);
+                }
             }
         } catch (NoSuchElementException e) {
             // Fall through to return empty
@@ -119,6 +124,21 @@ public class YamlConfiguration implements Configuration {
     @Override
     public Set<String> getAllServers() {
         return getServerMap().keySet();
+    }
+
+    @Override
+    public boolean shouldCheckWhitelist(String serverName) {
+        try {
+            Object configuration = getServerConfiguration(serverName);
+            if (configuration instanceof Map serverConfiguration) {
+                Object whitelist = serverConfiguration.get("whitelist");
+                if (whitelist instanceof Boolean) {
+                    return (Boolean) whitelist;
+                }
+            }
+        } catch (NoSuchElementException ignored) {
+        }
+        return false;
     }
 
     @Override

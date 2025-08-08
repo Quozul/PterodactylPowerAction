@@ -43,6 +43,11 @@ public class ShellCommandAPI implements PowerActionAPI {
         return runCommands(powerCommand.workingDirectory(), powerCommand.start());
     }
 
+    @Override
+    public CompletableFuture<Boolean> isPlayerWhitelisted(String server, String playerName) {
+        return CompletableFuture.completedFuture(true);
+    }
+
     private CompletableFuture<Void> runCommands(Optional<String> workingDirectory, String command) {
         return CompletableFuture.runAsync(() -> {
             ProcessBuilder pb = new ProcessBuilder(command.split(" "));
