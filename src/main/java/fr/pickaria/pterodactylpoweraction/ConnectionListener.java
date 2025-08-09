@@ -172,7 +172,10 @@ public class ConnectionListener {
     }
 
     private void scheduleServerShutdown(RegisteredServer registeredServer) {
-        shutdownManager.scheduleShutdown(registeredServer);
+        String serverName = registeredServer.getServerInfo().getName();
+        if (configurationLoader.getConfiguration().getAllServers().contains(serverName)) {
+            shutdownManager.scheduleShutdown(registeredServer);
+        }
     }
 
     private Optional<RegisteredServer> getWaitingServer() {
@@ -184,8 +187,8 @@ public class ConnectionListener {
             // FIXME: This may be blocking the main thread
             return configurationLoader.getOnlineChecker(server).isRunningNow();
         } catch (NoSuchElementException exception) {
-            logger.error("Server '{}' does not have its Pterodactyl ID configured in the plugin's configuration", server.getServerInfo().getName(), exception);
-            return false;
+            logger.debug("Server '{}' does not have its Pterodactyl ID configured in the plugin's configuration", server.getServerInfo().getName());
+            return true;
         } catch (IllegalArgumentException exception) {
             logger.error("The Pterodactyl URL is missing or invalid in the plugin's configuration", exception);
             return false;
