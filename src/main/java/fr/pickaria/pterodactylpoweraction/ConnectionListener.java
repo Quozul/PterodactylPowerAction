@@ -15,6 +15,7 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.component.RunCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweraction.online.PingOnlineChecker;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
@@ -79,6 +80,8 @@ public class ConnectionListener {
 
         shutdownManager.cancelTask(originalServer);
 
+        boolean isManagedServer = configurationLoader.getConfiguration().getAllServers().contains(serverName);
+
         if (isReachable(originalServer)) {
             // Server pinged successfully, we can connect the player to this server
             event.setResult(ServerPreConnectEvent.ServerResult.allowed(originalServer));
@@ -96,11 +99,14 @@ public class ConnectionListener {
                 } else {
                     // If the waiting server is not reachable, we kick the player instead
                     event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                    event.getPlayer().disconnect(Component.translatable("kick.server.starting", Component.text(originalServer.getServerInfo().getName())));
+                    String messageKey = isManagedServer ? "kick.server.starting" : "kick.server.offline";
+                    event.getPlayer().disconnect(Component.translatable(messageKey, Component.text(originalServer.getServerInfo().getName())));
                 }
             }
 
-            startServerForPlayer(originalServer, event.getPlayer());
+            if (isManagedServer) {
+                startServerForPlayer(originalServer, event.getPlayer());
+            }
         }
     }
 
@@ -207,7 +213,7 @@ public class ConnectionListener {
             return configurationLoader.getOnlineChecker(server).isRunningNow();
         } catch (NoSuchElementException exception) {
             logger.debug("Server '{}' does not have its Pterodactyl ID configured in the plugin's configuration", server.getServerInfo().getName());
-            return true;
+            return new PingOnlineChecker(server, configurationLoader.getConfiguration()).isRunningNow();
         } catch (IllegalArgumentException exception) {
             logger.error("The Pterodactyl URL is missing or invalid in the plugin's configuration", exception);
             return false;
