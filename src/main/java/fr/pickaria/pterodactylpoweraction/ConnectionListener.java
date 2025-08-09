@@ -15,6 +15,7 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.component.RunCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweraction.online.PingOnlineChecker;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
@@ -79,6 +80,8 @@ public class ConnectionListener {
 
         shutdownManager.cancelTask(originalServer);
 
+        boolean isManagedServer = configurationLoader.getConfiguration().getAllServers().contains(serverName);
+
         if (isReachable(originalServer)) {
             // Server pinged successfully, we can connect the player to this server
             event.setResult(ServerPreConnectEvent.ServerResult.allowed(originalServer));
@@ -90,17 +93,20 @@ public class ConnectionListener {
             } else {
                 Optional<RegisteredServer> waitingServer = getWaitingServer();
 
-                if (waitingServer.isPresent() && waitingServer.get() != originalServer && isReachable(waitingServer.get())) {
+                if (isManagedServer && waitingServer.isPresent() && waitingServer.get() != originalServer && isReachable(waitingServer.get())) {
                     // Server is not running, inform the player and redirect somewhere else
                     event.setResult(ServerPreConnectEvent.ServerResult.allowed(waitingServer.get()));
                 } else {
-                    // If the waiting server is not reachable, we kick the player instead
+                    // If the waiting server is not reachable or the server isn't managed, we kick the player instead
                     event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                    event.getPlayer().disconnect(Component.translatable("kick.server.starting", Component.text(originalServer.getServerInfo().getName())));
+                    String messageKey = isManagedServer ? "kick.server.starting" : "kick.server.offline";
+                    event.getPlayer().disconnect(Component.translatable(messageKey, Component.text(originalServer.getServerInfo().getName())));
                 }
             }
 
-            startServerForPlayer(originalServer, event.getPlayer());
+            if (isManagedServer) {
+                startServerForPlayer(originalServer, event.getPlayer());
+            }
         }
     }
 
@@ -191,7 +197,10 @@ public class ConnectionListener {
     }
 
     private void scheduleServerShutdown(RegisteredServer registeredServer) {
-        shutdownManager.scheduleShutdown(registeredServer);
+        String serverName = registeredServer.getServerInfo().getName();
+        if (configurationLoader.getConfiguration().getAllServers().contains(serverName)) {
+            shutdownManager.scheduleShutdown(registeredServer);
+        }
     }
 
     private Optional<RegisteredServer> getWaitingServer() {
@@ -203,8 +212,8 @@ public class ConnectionListener {
             // FIXME: This may be blocking the main thread
             return configurationLoader.getOnlineChecker(server).isRunningNow();
         } catch (NoSuchElementException exception) {
-            logger.error("Server '{}' does not have its Pterodactyl ID configured in the plugin's configuration", server.getServerInfo().getName(), exception);
-            return false;
+            logger.debug("Server '{}' does not have its Pterodactyl ID configured in the plugin's configuration", server.getServerInfo().getName());
+            return new PingOnlineChecker(server, configurationLoader.getConfiguration()).isRunningNow();
         } catch (IllegalArgumentException exception) {
             logger.error("The Pterodactyl URL is missing or invalid in the plugin's configuration", exception);
             return false;
