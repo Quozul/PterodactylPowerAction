@@ -93,11 +93,11 @@ public class ConnectionListener {
             } else {
                 Optional<RegisteredServer> waitingServer = getWaitingServer();
 
-                if (waitingServer.isPresent() && waitingServer.get() != originalServer && isReachable(waitingServer.get())) {
+                if (isManagedServer && waitingServer.isPresent() && waitingServer.get() != originalServer && isReachable(waitingServer.get())) {
                     // Server is not running, inform the player and redirect somewhere else
                     event.setResult(ServerPreConnectEvent.ServerResult.allowed(waitingServer.get()));
                 } else {
-                    // If the waiting server is not reachable, we kick the player instead
+                    // If the waiting server is not reachable or the server isn't managed, we kick the player instead
                     event.setResult(ServerPreConnectEvent.ServerResult.denied());
                     String messageKey = isManagedServer ? "kick.server.starting" : "kick.server.offline";
                     event.getPlayer().disconnect(Component.translatable(messageKey, Component.text(originalServer.getServerInfo().getName())));
