@@ -92,10 +92,11 @@ public class StartingServer implements ForwardingAudience {
         } catch (CompletionException | CancellationException | ExecutionException | InterruptedException exception) {
             informError(exception);
         } finally {
-            isStarting.set(false);
-            waitingPlayers.clear();
-            if (bossBar != null) {
-                bossBar.stop();
+            if (isStarting.getAndSet(false)) {
+                waitingPlayers.clear();
+                if (bossBar != null) {
+                    bossBar.stop();
+                }
             }
         }
     }
@@ -104,6 +105,11 @@ public class StartingServer implements ForwardingAudience {
         String serverName = server.getServerInfo().getName();
         logger.error("An error occurred while starting the server '{}'", serverName, throwable);
         messager.error(this, "failed.to.start.server", new Text(Component.text(serverName)));
+        if (bossBar != null) {
+            bossBar.stop();
+        }
+        waitingPlayers.clear();
+        isStarting.set(false);
     }
 
     private void waitForServer() throws ExecutionException, InterruptedException {
