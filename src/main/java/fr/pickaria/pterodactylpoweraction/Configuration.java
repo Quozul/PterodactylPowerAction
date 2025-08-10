@@ -38,6 +38,10 @@ public interface Configuration {
 
     Set<String> getAllServers();
 
+    boolean isBossBarEnabled();
+
+    boolean showBossBarProgress();
+
     record PowerCommands(Optional<String> workingDirectory, String start, String stop) {
     }
 }

@@ -6,6 +6,7 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweraction.ServerStartBossBar;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
@@ -28,6 +29,7 @@ public class StartingServer implements ForwardingAudience {
     private final Logger logger;
     private final Messager messager;
     private final AtomicBoolean isStarting = new AtomicBoolean(false);
+    private final ServerStartBossBar bossBar;
 
     public StartingServer(RegisteredServer server, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager, Logger logger, Messager messager) {
         this.server = server;
@@ -35,6 +37,9 @@ public class StartingServer implements ForwardingAudience {
         this.shutdownManager = shutdownManager;
         this.logger = logger;
         this.messager = messager;
+        this.bossBar = configurationLoader.getConfiguration().isBossBarEnabled() ?
+                new ServerStartBossBar(this, configurationLoader.getConfiguration(), server.getServerInfo().getName(), logger) :
+                null;
     }
 
     /**
@@ -47,6 +52,10 @@ public class StartingServer implements ForwardingAudience {
     public boolean addPlayer(Player player) {
         boolean added = waitingPlayers.add(player);
 
+        if (bossBar != null && added) {
+            bossBar.addPlayer(player);
+        }
+
         if (isStarting.compareAndSet(false, true)) {
             String serverName = server.getServerInfo().getName();
             configurationLoader.getAPI().start(serverName).whenComplete((result, exception) -> {
@@ -56,6 +65,9 @@ public class StartingServer implements ForwardingAudience {
                     informError(exception);
                 }
             });
+            if (bossBar != null) {
+                bossBar.start();
+            }
         }
 
         return added;
@@ -82,6 +94,9 @@ public class StartingServer implements ForwardingAudience {
         } finally {
             isStarting.set(false);
             waitingPlayers.clear();
+            if (bossBar != null) {
+                bossBar.stop();
+            }
         }
     }
 

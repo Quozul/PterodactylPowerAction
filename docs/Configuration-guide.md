@@ -35,6 +35,8 @@ shutdown_behaviour: "shutdown_all"
 | `maximum_ping_duration`              | Maximum time (in seconds) to wait for a server to respond                               | `60`             | Any positive integer                              |
 | `shutdown_after_duration`            | Time (in seconds) after which an empty server will be shut down                         | `3600`           | Any positive integer                              |
 | `redirect_to_waiting_server_on_kick` | Whether to redirect players to the waiting server when kicked from a backend server     | `false`          | `true`, `false`                                   |
+| `bossbar.enabled`                    | Show an animated boss bar while a server starts (Pterodactyl only) | `true`           | `true`, `false`                                   |
+| `bossbar.show_progress`              | Whether the boss bar should display progress                     | `true`           | `true`, `false`                                   |
 | `shutdown_behaviour`                 | What to do with servers when the proxy shuts down                                       | `"shutdown_all"` | `"shutdown_all"`, `"shutdown_empty"`, `"nothing"` |
 
 ### Pterodactyl-Specific Settings
@@ -166,4 +168,5 @@ shutdown_behaviour: "shutdown_all"
 - When using Pterodactyl behind a proxy (like CloudFlare DNS proxy), you may encounter connection issues.
 - The `cd` command will not work in shell commands. Use the `working_directory` setting instead.
 - Shell command mode has not been extensively tested on Windows.
+- The startup boss bar feature is not compatible with the `shell` type.
 - If you add a new server to `velocity.toml`, you'll need to reload Velocity's configuration separately.

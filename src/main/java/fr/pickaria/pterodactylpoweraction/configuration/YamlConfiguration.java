@@ -24,6 +24,8 @@ public class YamlConfiguration implements Configuration {
     private static final boolean DEFAULT_REDIRECT_TO_WAITING_SERVER_ON_KICK = false;
     private static final boolean DEFAULT_START_WAITING_SERVER = true;
     private static final PingMethod DEFAULT_PING_METHOD = PingMethod.PING;
+    private static final boolean DEFAULT_BOSSBAR_ENABLED = true;
+    private static final boolean DEFAULT_BOSSBAR_SHOW_PROGRESS = true;
 
     public YamlConfiguration(File file, Logger logger) throws IOException {
         this.logger = logger;
@@ -114,6 +116,38 @@ public class YamlConfiguration implements Configuration {
             return false;
         }
         return getBoolean("redirect_to_waiting_server_on_kick", DEFAULT_REDIRECT_TO_WAITING_SERVER_ON_KICK);
+    }
+
+    @Override
+    public boolean isBossBarEnabled() {
+        if (getAPIType() == APIType.SHELL) {
+            return false;
+        }
+        return get("bossbar", Map.class)
+                .map(map -> {
+                    Object enabled = map.get("enabled");
+                    if (enabled instanceof Boolean b) {
+                        return b;
+                    }
+                    return DEFAULT_BOSSBAR_ENABLED;
+                })
+                .orElse(DEFAULT_BOSSBAR_ENABLED);
+    }
+
+    @Override
+    public boolean showBossBarProgress() {
+        if (!isBossBarEnabled()) {
+            return false;
+        }
+        return get("bossbar", Map.class)
+                .map(map -> {
+                    Object show = map.get("show_progress");
+                    if (show instanceof Boolean b) {
+                        return b;
+                    }
+                    return DEFAULT_BOSSBAR_SHOW_PROGRESS;
+                })
+                .orElse(DEFAULT_BOSSBAR_SHOW_PROGRESS);
     }
 
     @Override

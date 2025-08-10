@@ -5,12 +5,12 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class PterodactylWebSocketPayload {
-    PterodactylWebSocketPayload(String event, List<String> args) {
+    public PterodactylWebSocketPayload(String event, List<String> args) {
         this.event = event;
         this.args = args;
     }
 
-    PterodactylWebSocketPayload(String event) {
+    public PterodactylWebSocketPayload(String event) {
         this(event, List.of());
     }
 
