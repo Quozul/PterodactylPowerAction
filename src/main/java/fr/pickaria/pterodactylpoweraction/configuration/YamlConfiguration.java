@@ -204,11 +204,21 @@ public class YamlConfiguration implements Configuration {
         Object value = config.get(key);
         if (type.isInstance(value)) {
             return Optional.of(type.cast(value));
-        } else if (value == null) {
-            logger.warn("Key '{}' has wrong type, expected {} but got null", key, type.getSimpleName());
-        } else {
-            logger.warn("Key '{}' has wrong type, expected {} but got {}", key, type.getSimpleName(), value.getClass().getSimpleName());
         }
+
+        if (value == null) {
+            if (config.containsKey(key)) {
+                logger.warn("Key '{}' has wrong type, expected {} but got null", key, type.getSimpleName());
+            }
+        } else {
+            logger.warn(
+                    "Key '{}' has wrong type, expected {} but got {}",
+                    key,
+                    type.getSimpleName(),
+                    value.getClass().getSimpleName()
+            );
+        }
+
         return Optional.empty();
     }
 
