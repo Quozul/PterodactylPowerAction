@@ -114,6 +114,10 @@ public class StartingServer implements ForwardingAudience {
         String serverName = server.getServerInfo().getName();
         Component serverNameComponent = Component.text(serverName);
         try {
+            if (bossBar != null) {
+                bossBar.removePlayer(player);
+            }
+            waitingPlayers.remove(player);
             ConnectionRequestBuilder.Result result = player.createConnectionRequest(server).connect().get();
             if (result.isSuccessful()) {
                 return result.isSuccessful();

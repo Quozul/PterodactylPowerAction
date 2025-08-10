@@ -50,10 +50,23 @@ class ServerStartBossBar {
         this.logger = logger;
         this.showProgress = configuration.showBossBarProgress();
         float progress = this.showProgress ? 0f : 1f;
-        this.bossBar = BossBar.bossBar(Component.translatable(messageKey, Component.text(serverName)), progress, BossBar.Color.PURPLE, BossBar.Overlay.PROGRESS);
+        this.bossBar = BossBar.bossBar(
+                Component.translatable(messageKey, Component.text(serverName)),
+                progress,
+                BossBar.Color.YELLOW,
+                BossBar.Overlay.PROGRESS
+        );
     }
 
     void start() {
+        messageKey = "bossbar.starting";
+        dots = 0;
+        if (showProgress) {
+            bossBar.progress(0f);
+        } else {
+            bossBar.progress(1f);
+        }
+        bossBar.name(Component.translatable(messageKey, Component.text(serverName)));
         audience.showBossBar(bossBar);
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(this::animate, 1, 1, TimeUnit.SECONDS);
@@ -78,6 +91,18 @@ class ServerStartBossBar {
             scheduler.shutdownNow();
         }
         audience.hideBossBar(bossBar);
+        messageKey = "bossbar.starting";
+        dots = 0;
+        if (showProgress) {
+            bossBar.progress(0f);
+        } else {
+            bossBar.progress(1f);
+        }
+        bossBar.name(Component.translatable(messageKey, Component.text(serverName)));
+    }
+
+    void removePlayer(Player player) {
+        player.hideBossBar(bossBar);
     }
 
     private void animate() {
