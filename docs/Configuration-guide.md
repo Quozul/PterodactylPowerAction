@@ -48,6 +48,9 @@ pterodactyl_api_key: "ptlc_xxx"
 pterodactyl_client_api_base_url: "https://example.com/api/client"
 servers:
   server_name: "server_id"
+bossbar:
+  enabled: true
+  show_progress: true
 ```
 
 | Option                            | Description                                                |
@@ -55,6 +58,7 @@ servers:
 | `pterodactyl_api_key`             | Client API key from Pterodactyl panel                      |
 | `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                    |
 | `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs |
+| `bossbar`                         | Show an animated boss bar while a server starts            |
 
 ### Shell-Specific Settings
 
@@ -139,6 +143,9 @@ ping_method: "pterodactyl"
 maximum_ping_duration: 60
 shutdown_after_duration: 3600
 redirect_to_waiting_server_on_kick: false
+bossbar:
+  enabled: true
+  show_progress: true
 shutdown_behaviour: "shutdown_empty"
 ```
 
