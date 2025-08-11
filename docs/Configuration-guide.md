@@ -56,6 +56,7 @@ servers:
 | `pterodactyl_api_key`             | Client API key from Pterodactyl panel                      |
 | `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                    |
 | `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs |
+| `whitelist`                       | Enable whitelist verification using `whitelist.json` file  |
 
 Each server entry may either be a simple string containing the server's identifier or a map with an `identifier` field. When using the map form, an optional `whitelist` boolean can enable whitelist verification for that server.
 
