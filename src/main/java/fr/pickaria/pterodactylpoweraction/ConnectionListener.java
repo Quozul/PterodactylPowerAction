@@ -61,6 +61,7 @@ public class ConnectionListener {
 
         shutdownManager.cancelTask(originalServer);
 
+        String serverName = originalServer.getServerInfo().getName();
         boolean isManagedServer = configurationLoader.getConfiguration().getAllServers().contains(serverName);
 
         if (isReachable(originalServer)) {
