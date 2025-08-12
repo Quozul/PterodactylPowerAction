@@ -24,7 +24,6 @@ class ServerStartBossBar {
     private final Configuration configuration;
     private final String serverName;
     private final Logger logger;
-    private final boolean showProgress;
     private final BossBar bossBar;
     private ScheduledExecutorService scheduler;
     private WebSocket webSocket;
@@ -48,11 +47,9 @@ class ServerStartBossBar {
         this.configuration = configuration;
         this.serverName = serverName;
         this.logger = logger;
-        this.showProgress = configuration.showBossBarProgress();
-        float progress = this.showProgress ? 0f : 1f;
         this.bossBar = BossBar.bossBar(
                 Component.translatable(messageKey, Component.text(serverName)),
-                progress,
+                0f,
                 BossBar.Color.YELLOW,
                 BossBar.Overlay.PROGRESS
         );
@@ -61,11 +58,7 @@ class ServerStartBossBar {
     void start() {
         messageKey = "bossbar.starting";
         dots = 0;
-        if (showProgress) {
-            bossBar.progress(0f);
-        } else {
-            bossBar.progress(1f);
-        }
+        bossBar.progress(0f);
         bossBar.name(Component.translatable(messageKey, Component.text(serverName)));
         audience.showBossBar(bossBar);
         scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -93,11 +86,7 @@ class ServerStartBossBar {
         audience.hideBossBar(bossBar);
         messageKey = "bossbar.starting";
         dots = 0;
-        if (showProgress) {
-            bossBar.progress(0f);
-        } else {
-            bossBar.progress(1f);
-        }
+        bossBar.progress(0f);
         bossBar.name(Component.translatable(messageKey, Component.text(serverName)));
     }
 
@@ -121,9 +110,7 @@ class ServerStartBossBar {
         for (Phase phase : PHASES) {
             if (phase.pattern.matcher(line).find()) {
                 messageKey = phase.key;
-                if (showProgress) {
-                    bossBar.progress(Math.max(bossBar.progress(), phase.progress));
-                }
+                bossBar.progress(Math.max(bossBar.progress(), phase.progress));
                 break;
             }
         }
