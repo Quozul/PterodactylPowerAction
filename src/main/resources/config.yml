@@ -69,7 +69,6 @@ redirect_to_waiting_server_on_kick: false
 # Only works when using the Pterodactyl API.
 bossbar:
   enabled: true
-  show_progress: true
 
 # PROXY SHUTDOWN BEHAVIOR
 # ----------------------
