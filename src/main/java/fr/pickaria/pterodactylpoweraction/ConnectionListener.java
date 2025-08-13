@@ -15,6 +15,7 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.component.RunCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweraction.online.PingOnlineChecker;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
@@ -56,8 +57,13 @@ public class ConnectionListener {
     @Subscribe()
     public void onServerPreConnect(ServerPreConnectEvent event) {
         RegisteredServer originalServer = event.getOriginalServer();
-        RegisteredServer previousServer = event.getPreviousServer();
 
+        // If the server is not managed, simply ignore it
+        if (!this.isManagedServer(originalServer)) {
+            return;
+        }
+
+        RegisteredServer previousServer = event.getPreviousServer();
         shutdownManager.cancelTask(originalServer);
 
         if (isReachable(originalServer)) {
@@ -112,8 +118,10 @@ public class ConnectionListener {
 
     @Subscribe()
     public void onKicked(KickedFromServerEvent event) {
-        scheduleServerShutdown(event.getPlayer());
-        redirectPlayerToWaitingServerOnKick(event);
+        if (isManagedServer(event.getServer())) {
+            scheduleServerShutdown(event.getPlayer());
+            redirectPlayerToWaitingServerOnKick(event);
+        }
     }
 
     private void redirectPlayerToWaitingServerOnKick(KickedFromServerEvent event) {
@@ -172,7 +180,14 @@ public class ConnectionListener {
     }
 
     private void scheduleServerShutdown(RegisteredServer registeredServer) {
-        shutdownManager.scheduleShutdown(registeredServer);
+        if (this.isManagedServer(registeredServer)) {
+            shutdownManager.scheduleShutdown(registeredServer);
+        }
+    }
+
+    private boolean isManagedServer(RegisteredServer server) {
+        String serverName = server.getServerInfo().getName();
+        return configurationLoader.getConfiguration().getAllServers().contains(serverName);
     }
 
     private Optional<RegisteredServer> getWaitingServer() {
