@@ -19,9 +19,11 @@ pterodactyl_client_api_base_url: "https://example.com/api/client"
 # - For Pterodactyl: Use the server's identifier from the panel (found under "Settings" > "Debug Information")
 # - For Shell: Define start/stop commands and optional working directory
 servers:
-  # Example for Pterodactyl:
-  survival: "abc123"
-  
+  # Example for Pterodactyl with whitelist check enabled:
+  survival:
+    identifier: "abc123"
+    whitelist: true
+
   # Example for Shell (uncomment if using shell type):
   # survival:
   #   working_directory: "/path/to/server"  # Optional, defaults to current directory

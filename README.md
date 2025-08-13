@@ -29,10 +29,12 @@ If you have any questions or suggestions, join the [Discord server](https://disc
 
 - 🛡️ **Kick Protection** - Optionally redirects kicked players to your waiting server instead of disconnecting them
 
+- 🔐 **Whitelist Verification** - Optionally validates players against per-server whitelists before letting them join or start the server
+
 - 🧰 **Flexible Implementation**:
     - Works with Pterodactyl Panel API for managed hosting
     - Supports direct shell commands for self-hosted environments
-
+ 
 - ⚙️ **Highly Configurable**:
     - Customizable shutdown delay
     - Multiple server status checking methods

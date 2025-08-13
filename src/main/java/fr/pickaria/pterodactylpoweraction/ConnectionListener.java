@@ -1,5 +1,6 @@
 package fr.pickaria.pterodactylpoweraction;
 
+import com.google.gson.JsonSyntaxException;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.KickedFromServerEvent;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class ConnectionListener {
     private final ProxyServer proxy;
@@ -56,8 +58,12 @@ public class ConnectionListener {
     @Subscribe()
     public void onServerPreConnect(ServerPreConnectEvent event) {
         RegisteredServer originalServer = event.getOriginalServer();
-        RegisteredServer previousServer = event.getPreviousServer();
 
+        if (!this.isManagedServer(originalServer) || !isAllowedToStart(originalServer, event)) {
+            return;
+        }
+
+        RegisteredServer previousServer = event.getPreviousServer();
         shutdownManager.cancelTask(originalServer);
 
         if (isReachable(originalServer)) {
@@ -82,6 +88,37 @@ public class ConnectionListener {
             }
 
             startServerForPlayer(originalServer, event.getPlayer());
+        }
+    }
+
+    private boolean isAllowedToStart(RegisteredServer originalServer, ServerPreConnectEvent event) {
+        String serverName = originalServer.getServerInfo().getName();
+        Player player = event.getPlayer();
+        if (configurationLoader.getConfiguration().shouldCheckWhitelist(serverName)) {
+            try {
+                boolean whitelisted = configurationLoader.getAPI()
+                        .isPlayerWhitelisted(serverName, player.getUsername())
+                        .get();
+                if (!whitelisted) {
+                    event.setResult(ServerPreConnectEvent.ServerResult.denied());
+                    notifyPlayerOrDisconnect(player, "whitelist.not.whitelisted");
+                    return false;
+                }
+            } catch (ExecutionException | InterruptedException | JsonSyntaxException e) {
+                logger.error("Failed to check whitelist for server {}", serverName, e);
+                event.setResult(ServerPreConnectEvent.ServerResult.denied());
+                notifyPlayerOrDisconnect(player, "whitelist.verification.failed");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void notifyPlayerOrDisconnect(Player player, String key) {
+        if (player.getCurrentServer().isPresent()) {
+            messager.error(player, key);
+        } else {
+            player.disconnect(Component.translatable(key));
         }
     }
 
@@ -112,8 +149,10 @@ public class ConnectionListener {
 
     @Subscribe()
     public void onKicked(KickedFromServerEvent event) {
-        scheduleServerShutdown(event.getPlayer());
-        redirectPlayerToWaitingServerOnKick(event);
+        if (isManagedServer(event.getServer())) {
+            scheduleServerShutdown(event.getPlayer());
+            redirectPlayerToWaitingServerOnKick(event);
+        }
     }
 
     private void redirectPlayerToWaitingServerOnKick(KickedFromServerEvent event) {
@@ -172,7 +211,14 @@ public class ConnectionListener {
     }
 
     private void scheduleServerShutdown(RegisteredServer registeredServer) {
-        shutdownManager.scheduleShutdown(registeredServer);
+        if (this.isManagedServer(registeredServer)) {
+            shutdownManager.scheduleShutdown(registeredServer);
+        }
+    }
+
+    private boolean isManagedServer(RegisteredServer server) {
+        String serverName = server.getServerInfo().getName();
+        return configurationLoader.getConfiguration().getAllServers().contains(serverName);
     }
 
     private Optional<RegisteredServer> getWaitingServer() {

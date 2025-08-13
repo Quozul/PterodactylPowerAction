@@ -1,16 +1,20 @@
 package fr.pickaria.pterodactylpoweraction.api;
 
+import com.google.gson.Gson;
 import fr.pickaria.pterodactylpoweraction.Configuration;
 import fr.pickaria.pterodactylpoweraction.PowerActionAPI;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ShellCommandAPI implements PowerActionAPI {
+    private static final Gson GSON = new Gson();
     private final Logger logger;
     private final Configuration configuration;
 
@@ -41,6 +45,37 @@ public class ShellCommandAPI implements PowerActionAPI {
         Configuration.PowerCommands powerCommand = powerCommands.get();
         logger.info("Starting server {}", server);
         return runCommands(powerCommand.workingDirectory(), powerCommand.start());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isPlayerWhitelisted(String server, String playerName) {
+        Optional<Configuration.PowerCommands> powerCommands = configuration.getPowerCommands(server);
+        if (powerCommands.isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        Optional<String> workingDirectory = powerCommands.get().workingDirectory();
+        Path whitelistPath = workingDirectory.map(Path::of).orElse(Path.of(".")).resolve("whitelist.json");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (!Files.exists(whitelistPath)) {
+                    return false;
+                }
+                String content = Files.readString(whitelistPath);
+                WhitelistEntry[] entries = GSON.fromJson(content, WhitelistEntry[].class);
+                if (entries != null) {
+                    for (WhitelistEntry entry : entries) {
+                        if (playerName.equalsIgnoreCase(entry.name())) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("Failed to read whitelist file {}", whitelistPath, e);
+            }
+            return false;
+        });
     }
 
     private CompletableFuture<Void> runCommands(Optional<String> workingDirectory, String command) {

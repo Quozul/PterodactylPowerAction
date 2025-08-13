@@ -106,8 +106,31 @@ public class ConfigurationDoctor {
                         isValid = false;
                     }
 
+                    if (value instanceof Map serverConfig) {
+                        Object whitelist = serverConfig.get("whitelist");
+                        if (whitelist != null && !(whitelist instanceof Boolean)) {
+                            logger.warn("'servers.{}.whitelist' must be a boolean if specified.", key);
+                            isValid = false;
+                        }
+                    }
+
                     if (apiType == APIType.PTERODACTYL) {
-                        if (value instanceof String uuid) {
+                        String uuid = null;
+                        if (value instanceof String) {
+                            uuid = (String) value;
+                        } else if (value instanceof Map serverConfig) {
+                            Object identifier = serverConfig.get("identifier");
+                            if (identifier instanceof String) {
+                                uuid = (String) identifier;
+                            } else {
+                                logger.warn("'servers.{}.identifier' is missing or not a string.", key);
+                                isValid = false;
+                            }
+                        } else {
+                            logger.warn("The server '{}' entry must be a string or map when type is 'pterodactyl'.", key);
+                            isValid = false;
+                        }
+                        if (uuid != null) {
                             if (!this.isUUID(uuid)) {
                                 logger.warn("The identifier '{}' for server '{}' must be a valid UUID. You can find the 'Server ID' under the 'Settings' tab of your server on your Pterodactyl panel.", uuid, key);
                                 isValid = false;
@@ -123,9 +146,6 @@ public class ConfigurationDoctor {
                                     isValid = false;
                                 }
                             }
-                        } else {
-                            logger.warn("The server '{}' entry must be a string when type is 'pterodactyl'.", key);
-                            isValid = false;
                         }
                     } else if (apiType == APIType.SHELL) {
                         if (value instanceof Map) {

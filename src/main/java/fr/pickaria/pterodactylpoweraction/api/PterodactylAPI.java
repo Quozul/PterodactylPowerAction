@@ -1,5 +1,6 @@
 package fr.pickaria.pterodactylpoweraction.api;
 
+import com.google.gson.Gson;
 import fr.pickaria.pterodactylpoweraction.Configuration;
 import fr.pickaria.pterodactylpoweraction.PowerActionAPI;
 import org.slf4j.Logger;
@@ -7,13 +8,16 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class PterodactylAPI implements PowerActionAPI {
+    private static final Gson GSON = new Gson();
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final Logger logger;
     private final Configuration configuration;
@@ -45,6 +49,53 @@ public class PterodactylAPI implements PowerActionAPI {
         String identifier = serverIdentifier.get();
         logger.info("Starting server {}", server);
         return makeRequest(identifier, "start");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isPlayerWhitelisted(String server, String playerName) {
+        Optional<String> serverIdentifier = configuration.getPterodactylServerIdentifier(server);
+        if (serverIdentifier.isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        String identifier = serverIdentifier.get();
+        String baseUrl = configuration.getPterodactylClientApiBaseURL().orElse("");
+        if (baseUrl.isEmpty() || configuration.getPterodactylApiKey().isEmpty()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        HttpRequest request;
+        try {
+            String fileParam = URLEncoder.encode("/whitelist.json", StandardCharsets.UTF_8);
+            URI uri = new URI(baseUrl + "/servers/" + identifier + "/files/contents?file=" + fileParam);
+            request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Authorization", "Bearer " + configuration.getPterodactylApiKey().get())
+                    .GET()
+                    .build();
+        } catch (URISyntaxException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+
+        return sendRequest(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    if (response.statusCode() != 200) {
+                        return false;
+                    }
+                    try {
+                        WhitelistEntry[] entries = GSON.fromJson(response.body(), WhitelistEntry[].class);
+                        if (entries != null) {
+                            for (WhitelistEntry entry : entries) {
+                                if (playerName.equalsIgnoreCase(entry.name())) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("Failed to parse whitelist for server {}", server, e);
+                    }
+                    return false;
+                });
     }
 
     public CompletableFuture<Boolean> exists(String server) {

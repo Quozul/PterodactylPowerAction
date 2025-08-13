@@ -40,6 +40,8 @@ public interface Configuration {
 
     boolean isBossBarEnabled();
 
+    boolean shouldCheckWhitelist(String serverName);
+
     record PowerCommands(Optional<String> workingDirectory, String start, String stop) {
     }
 }

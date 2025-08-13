@@ -46,7 +46,10 @@ When `type` or `ping_method` is set to `"pterodactyl"`, the following settings a
 pterodactyl_api_key: "ptlc_xxx"
 pterodactyl_client_api_base_url: "https://example.com/api/client"
 servers:
-  server_name: "server_id"
+  limbo: "21b8d887-7d47-4a0b-bbfe-4c4a6318dcf0" # Short form
+  survival:
+    identifier: "e25eccf6-2bc6-4264-b34a-c8ab02a5c986"
+    whitelist: true
 bossbar:
   enabled: true
 ```
@@ -57,6 +60,9 @@ bossbar:
 | `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                    |
 | `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs |
 | `bossbar`                         | Show an animated boss bar while a server starts            |
+| `whitelist`                       | Enable whitelist verification using `whitelist.json` file  |
+
+Each server entry may either be a simple string containing the server's identifier or a map with an `identifier` field. When using the map form, an optional `whitelist` boolean can enable whitelist verification for that server.
 
 ### Shell-Specific Settings
 
@@ -68,13 +74,15 @@ servers:
     working_directory: "/path/to/directory"  # Optional
     start: "command to start server"
     stop: "command to stop server"
+    whitelist: true  # Optional
 ```
 
-| Option              | Description                               |
-|---------------------|-------------------------------------------|
-| `working_directory` | Directory to run commands from (optional) |
-| `start`             | Command to start the server               |
-| `stop`              | Command to stop the server                |
+| Option              | Description                                               |
+|---------------------|-----------------------------------------------------------|
+| `working_directory` | Directory to run commands from (optional)                 |
+| `start`             | Command to start the server                               |
+| `stop`              | Command to stop the server                                |
+| `whitelist`         | Enable whitelist verification using `whitelist.json` file |
 
 ## Shutdown Behavior Options
 
@@ -134,8 +142,11 @@ pterodactyl_api_key: "ptlc_xxx"
 pterodactyl_client_api_base_url: "https://panel.example.com/api/client"
 servers:
   limbo: "21b8d887-7d47-4a0b-bbfe-4c4a6318dcf0"
-  survival: "e25eccf6-2bc6-4264-b34a-c8ab02a5c986"
-  creative: "f33b8741-e46c-4386-9281-05eaa2e88333"
+  survival:
+    identifier: "e25eccf6-2bc6-4264-b34a-c8ab02a5c986"
+    whitelist: true
+  creative:
+    identifier: "f33b8741-e46c-4386-9281-05eaa2e88333"
 waiting_server_name: "limbo"
 ping_method: "pterodactyl"
 maximum_ping_duration: 60
@@ -155,6 +166,7 @@ servers:
     working_directory: "/home/minecraft/servers"
     start: "docker compose start survival"
     stop: "docker compose stop survival"
+    whitelist: true
   creative:
     working_directory: "/home/minecraft/servers"
     start: "docker compose start creative"
