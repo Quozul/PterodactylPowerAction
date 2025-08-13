@@ -35,7 +35,7 @@ shutdown_behaviour: "shutdown_all"
 | `maximum_ping_duration`              | Maximum time (in seconds) to wait for a server to respond                               | `60`             | Any positive integer                              |
 | `shutdown_after_duration`            | Time (in seconds) after which an empty server will be shut down                         | `3600`           | Any positive integer                              |
 | `redirect_to_waiting_server_on_kick` | Whether to redirect players to the waiting server when kicked from a backend server     | `false`          | `true`, `false`                                   |
-| `bossbar`                    | Show a progress boss bar while a server starts (Pterodactyl API only)                  | `true`           | `true`, `false`                                   |
+| `bossbar`                            | Show a progress boss bar while a server starts (Pterodactyl API only)                   | `true`           | `true`, `false`                                   |
 | `shutdown_behaviour`                 | What to do with servers when the proxy shuts down                                       | `"shutdown_all"` | `"shutdown_all"`, `"shutdown_empty"`, `"nothing"` |
 
 ### Pterodactyl-Specific Settings
