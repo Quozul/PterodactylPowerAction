@@ -127,15 +127,7 @@ public class YamlConfiguration implements Configuration {
         if (getAPIType() == APIType.SHELL) {
             return false;
         }
-        return get("bossbar", Map.class)
-                .map(map -> {
-                    Object enabled = map.get("enabled");
-                    if (enabled instanceof Boolean b) {
-                        return b;
-                    }
-                    return DEFAULT_BOSSBAR_ENABLED;
-                })
-                .orElse(DEFAULT_BOSSBAR_ENABLED);
+        return getBoolean("bossbar", DEFAULT_BOSSBAR_ENABLED);
     }
 
     @Override
