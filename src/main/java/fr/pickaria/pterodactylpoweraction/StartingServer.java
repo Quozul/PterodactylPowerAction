@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -68,6 +69,10 @@ public class StartingServer implements ForwardingAudience {
         try {
             waitForServer();
             fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(server.getServerInfo().getName(), fr.pickaria.pterodactylpoweraction.state.ServerState.RUNNING);
+
+            if (configurationLoader.getConfiguration().getCacheMotd()) {
+                shutdownManager.scheduleMotdCache(server, Duration.ofMinutes(1));
+            }
 
             for (Player player : waitingPlayers) {
                 if (player.isActive()) {

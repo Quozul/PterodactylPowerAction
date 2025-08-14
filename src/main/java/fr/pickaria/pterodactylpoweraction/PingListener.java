@@ -82,7 +82,14 @@ public class PingListener {
                 builder.description(translatedComponent("state.motd.offline", NamedTextColor.RED));
             }
         } else if (config.getCacheMotd()) {
-            motdCache.get(serverName).ifPresent(builder::description);
+            Optional<Component> cached = motdCache.get(serverName);
+            if (cached.isPresent()) {
+                builder.description(cached.get());
+            } else if (state == ServerState.STARTING) {
+                builder.description(translatedComponent("state.motd.starting", NamedTextColor.GOLD));
+            } else if (state != ServerState.RUNNING) {
+                builder.description(translatedComponent("state.motd.offline", NamedTextColor.RED));
+            }
         }
 
         event.setPing(builder.build());

@@ -5,6 +5,7 @@ import com.velocitypowered.api.proxy.server.ServerPing;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.slf4j.Logger;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -21,21 +22,32 @@ public class MotdCache {
     private final Path file;
     private final Logger logger;
     private final Map<String, String> cache = new HashMap<>();
-    private final Yaml yaml = new Yaml();
+    private final Yaml yaml;
     private final GsonComponentSerializer serializer = GsonComponentSerializer.gson();
 
     public MotdCache(Path dataDirectory, Logger logger) {
         this.file = dataDirectory.resolve("motd-cache.yml");
         this.logger = logger;
+
+        DumperOptions options = new DumperOptions();
+        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.DOUBLE_QUOTED);
+        this.yaml = new Yaml(options);
+
         load();
     }
 
     private void load() {
         if (Files.exists(file)) {
             try (InputStream in = Files.newInputStream(file)) {
-                Map<String, String> loaded = yaml.load(in);
+                Map<String, Object> loaded = yaml.load(in);
                 if (loaded != null) {
-                    cache.putAll(loaded);
+                    loaded.forEach((key, value) -> {
+                        if (value instanceof String) {
+                            cache.put(key, (String) value);
+                        } else {
+                            logger.warn("Invalid MOTD cache entry for {}", key);
+                        }
+                    });
                 }
             } catch (IOException e) {
                 logger.warn("Failed to load MOTD cache", e);

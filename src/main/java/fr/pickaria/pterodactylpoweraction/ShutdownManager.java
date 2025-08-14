@@ -47,6 +47,16 @@ public class ShutdownManager {
         scheduleShutdownTask(server, afterDuration);
     }
 
+    public void scheduleMotdCache(RegisteredServer server, Duration delay) {
+        if (!configurationLoader.getConfiguration().getCacheMotd()) {
+            return;
+        }
+        proxy.getScheduler()
+                .buildTask(plugin, () -> motdCache.update(server))
+                .delay(delay)
+                .schedule();
+    }
+
     public void shutdownAll(ShutdownBehaviour shutdownBehaviour, Duration afterDuration) {
         switch (shutdownBehaviour) {
             case SHUTDOWN_EMPTY: {
