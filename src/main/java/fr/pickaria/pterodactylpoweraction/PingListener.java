@@ -49,10 +49,15 @@ public class PingListener {
             return;
         }
         ServerState state = ServerStateManager.getState(serverName);
-        if (state == ServerState.STOPPED) {
+
+        if (state != ServerState.STARTING) {
             try {
-                if (configurationLoader.getOnlineChecker(server).isRunningNow()) {
+                boolean running = configurationLoader.getOnlineChecker(server).isRunningNow();
+                if (running && state == ServerState.STOPPED) {
                     state = ServerState.RUNNING;
+                    ServerStateManager.setState(serverName, state);
+                } else if (!running && state == ServerState.RUNNING) {
+                    state = ServerState.STOPPED;
                     ServerStateManager.setState(serverName, state);
                 }
             } catch (Exception e) {
