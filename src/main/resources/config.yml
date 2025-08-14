@@ -79,6 +79,7 @@ shutdown_behaviour: "shutdown_all"
 # Replace the players/ping text when the server is offline or starting
 state_ping: false
 # Cache the MOTD of backend servers so it is shown even when they are offline
+# Cache occurs one minute after a server starts (falls back to state messages if no cache exists)
 cache_motd: false
 # Show server state in the MOTD when servers are offline or starting. Disables cache_motd when true
 state_motd: false

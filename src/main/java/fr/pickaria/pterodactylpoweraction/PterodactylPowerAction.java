@@ -103,6 +103,7 @@ public class PterodactylPowerAction {
                     if (!onlineChecker.isRunningNow()) {
                         PowerActionAPI api = configurationLoader.getAPI();
                         api.start(server.getServerInfo().getName());
+                        shutdownManager.scheduleMotdCache(server, Duration.ofMinutes(1));
                     }
                 });
     }
