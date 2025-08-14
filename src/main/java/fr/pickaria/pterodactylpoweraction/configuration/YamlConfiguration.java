@@ -24,6 +24,9 @@ public class YamlConfiguration implements Configuration {
     private static final boolean DEFAULT_REDIRECT_TO_WAITING_SERVER_ON_KICK = false;
     private static final boolean DEFAULT_START_WAITING_SERVER = true;
     private static final PingMethod DEFAULT_PING_METHOD = PingMethod.PING;
+    private static final boolean DEFAULT_STATE_PING = false;
+    private static final boolean DEFAULT_CACHE_MOTD = false;
+    private static final boolean DEFAULT_STATE_MOTD = false;
 
     public YamlConfiguration(File file, Logger logger) throws IOException {
         this.logger = logger;
@@ -139,6 +142,24 @@ public class YamlConfiguration implements Configuration {
         } catch (NoSuchElementException ignored) {
         }
         return false;
+    }
+
+    @Override
+    public boolean getStatePing() {
+        return getBoolean("state_ping", DEFAULT_STATE_PING);
+    }
+
+    @Override
+    public boolean getCacheMotd() {
+        if (getStateMotd()) {
+            return false;
+        }
+        return getBoolean("cache_motd", DEFAULT_CACHE_MOTD);
+    }
+
+    @Override
+    public boolean getStateMotd() {
+        return getBoolean("state_motd", DEFAULT_STATE_MOTD);
     }
 
     @Override
