@@ -112,7 +112,11 @@ public class ShutdownManager {
     private void stopNowIfEmpty(RegisteredServer server) {
         if (isServerEmpty(server)) {
             String serverName = getServerName(server);
-            if (configurationLoader.getConfiguration().getCacheMotd()) {
+            Configuration config = configurationLoader.getConfiguration();
+            if (!config.getAllServers().contains(serverName)) {
+                return;
+            }
+            if (config.getCacheMotd()) {
                 motdCache.update(server);
             }
             configurationLoader.getAPI().stop(serverName);

@@ -45,6 +45,9 @@ public class PingListener {
         }
         RegisteredServer server = target.get();
         String serverName = server.getServerInfo().getName();
+        if (!config.getAllServers().contains(serverName)) {
+            return;
+        }
         ServerState state = ServerStateManager.getState(serverName);
         if (state == ServerState.STOPPED) {
             try {

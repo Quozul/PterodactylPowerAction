@@ -1,6 +1,6 @@
 # Server List Options
 
-The following configuration options control how server status is displayed in the Minecraft multiplayer menu. It is recommended to set Velocity's `ping-passthrough` option to `all` when using these settings.
+The following configuration options control how server status is displayed in the Minecraft multiplayer menu. It is recommended to set Velocity's `ping-passthrough` option to `all` when using these settings. Only servers defined in the plugin's `servers` section are affected; others retain Velocity's default behaviour.
 
 | Option | Description | Default | Values |
 |--------|-------------|---------|--------|
