@@ -35,13 +35,15 @@ public class PterodactylPowerAction {
     private final Logger logger;
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
+    private final fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache;
 
     @Inject
     public PterodactylPowerAction(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxy = server;
         this.logger = logger;
         this.configurationLoader = new ConfigurationLoader(logger, dataDirectory);
-        this.shutdownManager = new ShutdownManager(proxy, this, configurationLoader, logger);
+        this.motdCache = new fr.pickaria.pterodactylpoweraction.state.MotdCache(dataDirectory, logger);
+        this.shutdownManager = new ShutdownManager(proxy, this, configurationLoader, logger, motdCache);
     }
 
     @Subscribe
@@ -57,6 +59,8 @@ public class PterodactylPowerAction {
         try {
             ConnectionListener listener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
             proxy.getEventManager().register(this, listener);
+            PingListener pingListener = new PingListener(configurationLoader, proxy, motdCache, logger);
+            proxy.getEventManager().register(this, pingListener);
         } catch (NoSuchElementException e) {
             logger.error("Error loading listener", e);
         } catch (IllegalArgumentException e) {

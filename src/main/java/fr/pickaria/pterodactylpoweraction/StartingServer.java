@@ -49,6 +49,7 @@ public class StartingServer implements ForwardingAudience {
 
         if (isStarting.compareAndSet(false, true)) {
             String serverName = server.getServerInfo().getName();
+            fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STARTING);
             configurationLoader.getAPI().start(serverName).whenComplete((result, exception) -> {
                 if (exception == null) {
                     pingUntilUpAndRedirectPlayers();
@@ -66,6 +67,7 @@ public class StartingServer implements ForwardingAudience {
 
         try {
             waitForServer();
+            fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(server.getServerInfo().getName(), fr.pickaria.pterodactylpoweraction.state.ServerState.RUNNING);
 
             for (Player player : waitingPlayers) {
                 if (player.isActive()) {
@@ -88,6 +90,7 @@ public class StartingServer implements ForwardingAudience {
     private void informError(Throwable throwable) {
         String serverName = server.getServerInfo().getName();
         logger.error("An error occurred while starting the server '{}'", serverName, throwable);
+        fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STOPPED);
         messager.error(this, "failed.to.start.server", new Text(Component.text(serverName)));
     }
 
