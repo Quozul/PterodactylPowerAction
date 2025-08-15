@@ -38,8 +38,11 @@ class ServerStartBossBar {
             new Phase(Pattern.compile("Pulling Docker container image"), "bossbar.pulling.image", 0.20f),
             new Phase(Pattern.compile("Finished pulling Docker container image"), "bossbar.starting.jvm", 0.30f),
             new Phase(Pattern.compile("Starting.*server"), "bossbar.loading.server", 0.40f),
-            new Phase(Pattern.compile("Initializing plugins|Loading (?:server plugin|\\d+ mods)"), "bossbar.loading.plugins", 0.70f),
-            new Phase(Pattern.compile("Preparing (?:level|start region|spawn area)"), "bossbar.preparing.world", 0.90f)
+            new Phase(Pattern.compile("Loading properties|Loading libraries"), "bossbar.loading.libs", 0.50f),
+            new Phase(Pattern.compile("Binding to host|Starting Minecraft server on"), "bossbar.binding.port", 0.60f),
+            new Phase(Pattern.compile("Initializing plugins|Loading (?:server plugin|\\d+ mods|mods)|Loaded \\d+ (?:mods|plugins)"), "bossbar.loading.plugins", 0.70f),
+            new Phase(Pattern.compile("Preparing (?:level|start region|spawn area|world data)"), "bossbar.preparing.world", 0.90f),
+            new Phase(Pattern.compile("Done \\([0-9.]+s\\)!|Listening on"), "bossbar.done", 1.0f)
     );
 
     ServerStartBossBar(StartingServer audience, Configuration configuration, String serverName, Logger logger) {
