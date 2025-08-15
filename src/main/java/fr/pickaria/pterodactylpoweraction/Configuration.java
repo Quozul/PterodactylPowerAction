@@ -40,6 +40,12 @@ public interface Configuration {
 
     boolean shouldCheckWhitelist(String serverName);
 
+    boolean getStatePing();
+
+    boolean getCacheMotd();
+
+    boolean getStateMotd();
+
     record PowerCommands(Optional<String> workingDirectory, String start, String stop) {
     }
 }

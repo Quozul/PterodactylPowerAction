@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -49,6 +50,7 @@ public class StartingServer implements ForwardingAudience {
 
         if (isStarting.compareAndSet(false, true)) {
             String serverName = server.getServerInfo().getName();
+            fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STARTING);
             configurationLoader.getAPI().start(serverName).whenComplete((result, exception) -> {
                 if (exception == null) {
                     pingUntilUpAndRedirectPlayers();
@@ -66,6 +68,11 @@ public class StartingServer implements ForwardingAudience {
 
         try {
             waitForServer();
+            fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(server.getServerInfo().getName(), fr.pickaria.pterodactylpoweraction.state.ServerState.RUNNING);
+
+            if (configurationLoader.getConfiguration().getCacheMotd()) {
+                shutdownManager.scheduleMotdCache(server, Duration.ofMinutes(1));
+            }
 
             for (Player player : waitingPlayers) {
                 if (player.isActive()) {
@@ -88,6 +95,7 @@ public class StartingServer implements ForwardingAudience {
     private void informError(Throwable throwable) {
         String serverName = server.getServerInfo().getName();
         logger.error("An error occurred while starting the server '{}'", serverName, throwable);
+        fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STOPPED);
         messager.error(this, "failed.to.start.server", new Text(Component.text(serverName)));
     }
 
