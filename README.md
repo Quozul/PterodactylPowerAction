@@ -43,7 +43,6 @@ If you have any questions or suggestions, join the [Discord server](https://disc
     - Customizable shutdown delay
     - Multiple server status checking methods
     - Configurable shutdown behavior on proxy restart
-    - Optional server list customization (state ping, cached MOTD)
 
 - 🌐 **Multilingual Support** - Automatically translates messages based on the client's language (English, German,
   French)
