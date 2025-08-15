@@ -20,6 +20,9 @@ maximum_ping_duration: 60
 shutdown_after_duration: 3600
 redirect_to_waiting_server_on_kick: true
 shutdown_behaviour: "shutdown_all"
+state_ping: false
+cache_motd: false
+state_motd: false
 ```
 
 ## Configuration Options
@@ -36,6 +39,11 @@ shutdown_behaviour: "shutdown_all"
 | `shutdown_after_duration`            | Time (in seconds) after which an empty server will be shut down                         | `3600`           | Any positive integer                              |
 | `redirect_to_waiting_server_on_kick` | Whether to redirect players to the waiting server when kicked from a backend server     | `false`          | `true`, `false`                                   |
 | `shutdown_behaviour`                 | What to do with servers when the proxy shuts down                                       | `"shutdown_all"` | `"shutdown_all"`, `"shutdown_empty"`, `"nothing"` |
+| `state_ping`                         | Replace the players/ping text with server state when offline or starting                | `false`          | `true`, `false`                                   |
+| `cache_motd`                         | Cache the backend MOTD and display it while the server is offline                       | `false`          | `true`, `false`                                   |
+| `state_motd`                         | Show server state in the MOTD when offline or starting (disables `cache_motd`)          | `false`          | `true`, `false`                                   |
+
+When `cache_motd` is enabled: Plugin cache the backend MOTD one minute after a server starts and when the server stops; falls back to state messages if no cache exists
 
 ### Pterodactyl-Specific Settings
 
@@ -149,6 +157,9 @@ maximum_ping_duration: 60
 shutdown_after_duration: 3600
 redirect_to_waiting_server_on_kick: false
 shutdown_behaviour: "shutdown_empty"
+state_ping: false
+cache_motd: false
+state_motd: false
 ```
 
 ### Shell Example
@@ -171,6 +182,9 @@ maximum_ping_duration: 60
 shutdown_after_duration: 3600
 redirect_to_waiting_server_on_kick: true
 shutdown_behaviour: "shutdown_all"
+state_ping: false
+cache_motd: false
+state_motd: false
 ```
 
 ## Notes and Warnings

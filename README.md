@@ -30,10 +30,15 @@ If you have any questions or suggestions, join the [Discord server](https://disc
 
 - 🔐 **Whitelist Verification** - Optionally validates players against per-server whitelists before letting them join or start the server
 
+- 🎨 **Custom Server List Display** Fine-tune how your configured subserver appears in the multiplayer list with:
+    - `state_ping`: Replace the players/ping text with server state when offline or starting
+    - `cache_motd`: Cache the backend MOTD and display it while the server is offline
+    - `state_motd`: Show server state in the MOTD when offline or starting (disables `cache_motd`)
+  
 - 🧰 **Flexible Implementation**:
     - Works with Pterodactyl Panel API for managed hosting
     - Supports direct shell commands for self-hosted environments
- 
+
 - ⚙️ **Highly Configurable**:
     - Customizable shutdown delay
     - Multiple server status checking methods
