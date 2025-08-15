@@ -43,7 +43,7 @@ state_motd: false
 | `cache_motd`                         | Cache the backend MOTD and display it while the server is offline                       | `false`          | `true`, `false`                                   |
 | `state_motd`                         | Show server state in the MOTD when offline or starting (disables `cache_motd`)          | `false`          | `true`, `false`                                   |
 
-When `cache_motd` is enabled: Plugin cache the backend MOTD one minute after a server starts and when the server stops; falls back to state messages if no cache exists
+When `cache_motd` is enabled: Plugin cache the backend MOTD one minute after a server starts and when the server stops; falls back to state motd if no cache exists
 
 ### Pterodactyl-Specific Settings
 
