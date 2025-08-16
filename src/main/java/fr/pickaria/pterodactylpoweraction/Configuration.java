@@ -38,6 +38,8 @@ public interface Configuration {
 
     Set<String> getAllServers();
 
+    boolean isBossBarEnabled();
+
     boolean shouldCheckWhitelist(String serverName);
 
     boolean getStatePing();

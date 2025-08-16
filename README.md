@@ -25,6 +25,7 @@ If you have any questions or suggestions, join the [Discord server](https://disc
     - Redirects players to a lightweight waiting server during startup
     - Automatically transfers players when their destination server is ready
     - Keeps players informed with status messages throughout the process
+    - Optional animated boss bar showing server startup progress (Pterodactyl API only)
 
 - 🛡️ **Kick Protection** - Optionally redirects kicked players to your waiting server instead of disconnecting them
 
