@@ -21,7 +21,9 @@ public class ShutdownManager {
     private final Map<String, ScheduledTask> shutdownTasks = new HashMap<>();
     private final Logger logger;
 
-    public ShutdownManager(ProxyServer proxy, PterodactylPowerAction plugin, ConfigurationLoader configurationLoader, Logger logger) {
+    private final fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache;
+
+    public ShutdownManager(ProxyServer proxy, PterodactylPowerAction plugin, ConfigurationLoader configurationLoader, Logger logger, fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache) {
         assert instance == null; // Simply to make sure we only instantiate this class once
         instance = this;
 
@@ -29,6 +31,7 @@ public class ShutdownManager {
         this.plugin = plugin;
         this.configurationLoader = configurationLoader;
         this.logger = logger;
+        this.motdCache = motdCache;
     }
 
     /**
@@ -42,6 +45,16 @@ public class ShutdownManager {
 
     public void scheduleShutdown(RegisteredServer server, Duration afterDuration) {
         scheduleShutdownTask(server, afterDuration);
+    }
+
+    public void scheduleMotdCache(RegisteredServer server, Duration delay) {
+        if (!configurationLoader.getConfiguration().getCacheMotd()) {
+            return;
+        }
+        proxy.getScheduler()
+                .buildTask(plugin, () -> motdCache.update(server))
+                .delay(delay)
+                .schedule();
     }
 
     public void shutdownAll(ShutdownBehaviour shutdownBehaviour, Duration afterDuration) {
@@ -108,7 +121,16 @@ public class ShutdownManager {
 
     private void stopNowIfEmpty(RegisteredServer server) {
         if (isServerEmpty(server)) {
-            configurationLoader.getAPI().stop(getServerName(server));
+            String serverName = getServerName(server);
+            Configuration config = configurationLoader.getConfiguration();
+            if (!config.getAllServers().contains(serverName)) {
+                return;
+            }
+            if (config.getCacheMotd()) {
+                motdCache.update(server);
+            }
+            configurationLoader.getAPI().stop(serverName);
+            fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STOPPED);
         }
     }
 

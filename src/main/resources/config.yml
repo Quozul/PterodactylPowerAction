@@ -72,3 +72,15 @@ redirect_to_waiting_server_on_kick: false
 #   - "shutdown_empty": Only stop servers with no players
 #   - "nothing": Keep all servers running
 shutdown_behaviour: "shutdown_all"
+
+# SERVER LIST OPTIONS
+# -------------------
+# Replace the players/ping text when the server is offline or starting
+state_ping: false
+# Cache the MOTD of backend servers so it is shown even when they are offline.
+# Cache occurs one minute after a server starts and when the server stops.
+# Falls back to state_motd if no cache exists.
+cache_motd: false
+# Show server state in the MOTD when servers are offline or starting.
+# Disables cache_motd when true.
+state_motd: false
