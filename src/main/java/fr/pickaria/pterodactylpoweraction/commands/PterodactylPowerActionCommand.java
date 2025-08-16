@@ -13,7 +13,6 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.PterodactylPowerAction;
 import fr.pickaria.pterodactylpoweraction.ShutdownManager;
-import fr.pickaria.pterodactylpoweraction.StartingServer;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationDoctor;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
@@ -74,7 +73,6 @@ public class PterodactylPowerActionCommand {
         CommandSource source = context.getSource();
 
         if (configurationLoader.reload()) {
-            StartingServer.reloadAll();
             messager.info(source, "command.reload.success");
         } else {
             messager.error(source, "command.reload.error");

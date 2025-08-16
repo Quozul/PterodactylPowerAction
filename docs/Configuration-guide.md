@@ -38,7 +38,6 @@ state_motd: false
 | `maximum_ping_duration`              | Maximum time (in seconds) to wait for a server to respond                               | `60`             | Any positive integer                              |
 | `shutdown_after_duration`            | Time (in seconds) after which an empty server will be shut down                         | `3600`           | Any positive integer                              |
 | `redirect_to_waiting_server_on_kick` | Whether to redirect players to the waiting server when kicked from a backend server     | `false`          | `true`, `false`                                   |
-| `bossbar`                            | Show a progress boss bar while a server starts (Pterodactyl API only)                   | `true`           | `true`, `false`                                   |
 | `shutdown_behaviour`                 | What to do with servers when the proxy shuts down                                       | `"shutdown_all"` | `"shutdown_all"`, `"shutdown_empty"`, `"nothing"` |
 | `state_ping`                         | Replace the players/ping text with server state when offline or starting                | `false`          | `true`, `false`                                   |
 | `cache_motd`                         | Cache the backend MOTD and display it while the server is offline                       | `false`          | `true`, `false`                                   |
@@ -58,7 +57,6 @@ servers:
   survival:
     identifier: "e25eccf6-2bc6-4264-b34a-c8ab02a5c986"
     whitelist: true
-bossbar: true
 ```
 
 | Option                            | Description                                                |
@@ -66,7 +64,6 @@ bossbar: true
 | `pterodactyl_api_key`             | Client API key from Pterodactyl panel                      |
 | `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                    |
 | `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs |
-| `bossbar`                         | Show an animated boss bar while a server starts            |
 | `whitelist`                       | Enable whitelist verification using `whitelist.json` file  |
 
 Each server entry may either be a simple string containing the server's identifier or a map with an `identifier` field. When using the map form, an optional `whitelist` boolean can enable whitelist verification for that server.
@@ -159,7 +156,6 @@ ping_method: "pterodactyl"
 maximum_ping_duration: 60
 shutdown_after_duration: 3600
 redirect_to_waiting_server_on_kick: false
-bossbar: true
 shutdown_behaviour: "shutdown_empty"
 state_ping: false
 cache_motd: false
@@ -196,5 +192,4 @@ state_motd: false
 - When using Pterodactyl behind a proxy (like CloudFlare DNS proxy), you may encounter connection issues.
 - The `cd` command will not work in shell commands. Use the `working_directory` setting instead.
 - Shell command mode has not been extensively tested on Windows.
-- The startup boss bar feature is not compatible with the `shell` type.
 - If you add a new server to `velocity.toml`, you'll need to reload Velocity's configuration separately.

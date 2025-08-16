@@ -65,12 +65,6 @@ shutdown_after_duration: 3600
 # Default: false
 redirect_to_waiting_server_on_kick: false
 
-# STARTUP BOSSBAR
-# ---------------
-# Displays an animated boss bar while a managed server is starting.
-# Only works when using the Pterodactyl API.
-bossbar: true
-
 # PROXY SHUTDOWN BEHAVIOR
 # ----------------------
 # What to do with servers when the proxy shuts down:
