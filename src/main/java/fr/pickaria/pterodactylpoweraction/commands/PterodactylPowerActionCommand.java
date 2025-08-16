@@ -13,6 +13,7 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.PterodactylPowerAction;
 import fr.pickaria.pterodactylpoweraction.ShutdownManager;
+import fr.pickaria.pterodactylpoweraction.ConnectionListener;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationDoctor;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
@@ -30,12 +31,14 @@ public class PterodactylPowerActionCommand {
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
     private final Messager messager;
+    private final ConnectionListener connectionListener;
 
-    public PterodactylPowerActionCommand(ProxyServer proxy, Logger logger, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager) {
+    public PterodactylPowerActionCommand(ProxyServer proxy, Logger logger, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager, ConnectionListener connectionListener) {
         this.proxy = proxy;
         this.logger = logger;
         this.configurationLoader = configurationLoader;
         this.shutdownManager = shutdownManager;
+        this.connectionListener = connectionListener;
         this.messager = new Messager();
     }
 
@@ -73,6 +76,7 @@ public class PterodactylPowerActionCommand {
         CommandSource source = context.getSource();
 
         if (configurationLoader.reload()) {
+            connectionListener.reloadStartingServers();
             messager.info(source, "command.reload.success");
         } else {
             messager.error(source, "command.reload.error");

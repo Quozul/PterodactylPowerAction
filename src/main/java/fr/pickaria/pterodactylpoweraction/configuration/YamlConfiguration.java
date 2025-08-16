@@ -24,6 +24,7 @@ public class YamlConfiguration implements Configuration {
     private static final boolean DEFAULT_REDIRECT_TO_WAITING_SERVER_ON_KICK = false;
     private static final boolean DEFAULT_START_WAITING_SERVER = true;
     private static final PingMethod DEFAULT_PING_METHOD = PingMethod.PING;
+    private static final boolean DEFAULT_BOSSBAR_ENABLED = true;
 
     public YamlConfiguration(File file, Logger logger) throws IOException {
         this.logger = logger;
@@ -122,6 +123,14 @@ public class YamlConfiguration implements Configuration {
     }
 
     @Override
+    public boolean isBossBarEnabled() {
+        if (getAPIType() == APIType.SHELL) {
+            return false;
+        }
+        return getBoolean("bossbar", DEFAULT_BOSSBAR_ENABLED);
+    }
+
+    @Override
     public Set<String> getAllServers() {
         return getServerMap().keySet();
     }
@@ -190,11 +199,21 @@ public class YamlConfiguration implements Configuration {
         Object value = config.get(key);
         if (type.isInstance(value)) {
             return Optional.of(type.cast(value));
-        } else if (value == null) {
-            logger.warn("Key '{}' has wrong type, expected {} but got null", key, type.getSimpleName());
-        } else {
-            logger.warn("Key '{}' has wrong type, expected {} but got {}", key, type.getSimpleName(), value.getClass().getSimpleName());
         }
+
+        if (value == null) {
+            if (config.containsKey(key)) {
+                logger.warn("Key '{}' has wrong type, expected {} but got null", key, type.getSimpleName());
+            }
+        } else {
+            logger.warn(
+                    "Key '{}' has wrong type, expected {} but got {}",
+                    key,
+                    type.getSimpleName(),
+                    value.getClass().getSimpleName()
+            );
+        }
+
         return Optional.empty();
     }
 
