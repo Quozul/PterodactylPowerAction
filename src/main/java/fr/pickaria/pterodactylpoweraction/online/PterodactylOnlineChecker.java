@@ -8,8 +8,6 @@ import fr.pickaria.pterodactylpoweraction.OnlineChecker;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.time.Duration;
 import java.util.List;
@@ -51,7 +49,8 @@ public class PterodactylOnlineChecker implements OnlineChecker {
         String serverId = configuration
                 .getPterodactylServerIdentifier(server.getServerInfo().getName())
                 .orElseThrow(() -> new NoSuchElementException("No Pterodactyl server id for " + server.getServerInfo().getName()));
-        PterodactylWebSocketCredentialsResponse.Data websocketCredentials = getWebsocketCredentials(serverId, configuration);
+        PterodactylWebSocketCredentialsResponse.Data websocketCredentials =
+                PterodactylWebSocketHelper.getWebsocketCredentials(serverId, configuration);
 
         URI base = URI.create(configuration.getPterodactylClientApiBaseURL().orElseThrow(() -> new IllegalStateException("No base URL")));
         String origin = base.getScheme() + "://" + base.getHost() + (base.getPort() == -1 ? "" : ":" + base.getPort());
@@ -148,29 +147,5 @@ public class PterodactylOnlineChecker implements OnlineChecker {
         return result;
     }
 
-    private PterodactylWebSocketCredentialsResponse.Data getWebsocketCredentials(String serverIdentifier, Configuration configuration) throws IllegalArgumentException, NoSuchElementException {
-        HttpClient client = HttpClient.newHttpClient();
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(configuration.getPterodactylClientApiBaseURL().orElseThrow() + "/servers/" + serverIdentifier + "/websocket"))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + configuration.getPterodactylApiKey().orElseThrow())
-                .GET()
-                .build();
-
-        try {
-            HttpResponse<String> response =
-                    client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            int statusCode = response.statusCode();
-            if (statusCode < 200 || statusCode >= 300) {
-                throw new IllegalStateException("Unexpected status: " + statusCode + " – " + response.body());
-            }
-
-            PterodactylWebSocketCredentialsResponse webSocketCredentials = new Gson().fromJson(response.body(), PterodactylWebSocketCredentialsResponse.class);
-            return webSocketCredentials.getData();
-        } catch (InterruptedException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    // Websocket credentials retrieval moved to PterodactylWebSocketHelper
 }

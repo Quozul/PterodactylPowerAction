@@ -5,14 +5,13 @@ import com.velocitypowered.api.proxy.Player;
 import fr.pickaria.pterodactylpoweraction.configuration.APIType;
 import fr.pickaria.pterodactylpoweraction.online.PterodactylWebSocketCredentialsResponse;
 import fr.pickaria.pterodactylpoweraction.online.PterodactylWebSocketPayload;
+import fr.pickaria.pterodactylpoweraction.online.PterodactylWebSocketHelper;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.time.Duration;
 import java.util.List;
@@ -33,16 +32,16 @@ class ServerStartBossBar {
     private static final Duration MAX_DURATION = Duration.ofSeconds(60);
 
     private static final List<Phase> PHASES = List.of(
-            new Phase(Pattern.compile("Updating process configuration files"), "bossbar.updating.config", 0.05f),
-            new Phase(Pattern.compile("Ensuring file permissions"), "bossbar.setting.permissions", 0.10f),
-            new Phase(Pattern.compile("Pulling Docker container image"), "bossbar.pulling.image", 0.20f),
-            new Phase(Pattern.compile("Finished pulling Docker container image"), "bossbar.starting.jvm", 0.30f),
-            new Phase(Pattern.compile("Starting.*server"), "bossbar.loading.server", 0.40f),
-            new Phase(Pattern.compile("Loading properties|Loading libraries"), "bossbar.loading.libs", 0.50f),
-            new Phase(Pattern.compile("Binding to host|Starting Minecraft server on"), "bossbar.binding.port", 0.60f),
-            new Phase(Pattern.compile("Initializing plugins|Loading (?:server plugin|\\d+ mods|mods)|Loaded \\d+ (?:mods|plugins)"), "bossbar.loading.plugins", 0.70f),
-            new Phase(Pattern.compile("Preparing (?:level|start region|spawn area|world data)"), "bossbar.preparing.world", 0.90f),
-            new Phase(Pattern.compile("Done \\([0-9.]+s\\)!|Listening on"), "bossbar.done", 1.0f)
+            new Phase(Pattern.compile("Updating process configuration files"), 0.05f),
+            new Phase(Pattern.compile("Ensuring file permissions"), 0.10f),
+            new Phase(Pattern.compile("Pulling Docker container image"), 0.20f),
+            new Phase(Pattern.compile("Finished pulling Docker container image"), 0.30f),
+            new Phase(Pattern.compile("Starting.*server"), 0.40f),
+            new Phase(Pattern.compile("Loading properties|Loading libraries"), 0.50f),
+            new Phase(Pattern.compile("Binding to host|Starting Minecraft server on"), 0.60f),
+            new Phase(Pattern.compile("Initializing plugins|Loading (?:server plugin|\\d+ mods|mods)|Loaded \\d+ (?:mods|plugins)"), 0.70f),
+            new Phase(Pattern.compile("Preparing (?:level|start region|spawn area|world data)"), 0.90f),
+            new Phase(Pattern.compile("Done \\([0-9.]+s\\)!|Listening on"), 1.0f)
     );
 
     ServerStartBossBar(StartingServer audience, Configuration configuration, String serverName, Logger logger) {
@@ -112,7 +111,6 @@ class ServerStartBossBar {
     private void handleConsole(String line) {
         for (Phase phase : PHASES) {
             if (phase.pattern.matcher(line).find()) {
-                messageKey = phase.key;
                 bossBar.progress(Math.max(bossBar.progress(), phase.progress));
                 break;
             }
@@ -125,7 +123,8 @@ class ServerStartBossBar {
             if (serverId == null) {
                 return;
             }
-            PterodactylWebSocketCredentialsResponse.Data creds = getWebsocketCredentials(serverId, configuration);
+            PterodactylWebSocketCredentialsResponse.Data creds =
+                    PterodactylWebSocketHelper.getWebsocketCredentials(serverId, configuration);
             URI base = URI.create(configuration.getPterodactylClientApiBaseURL().orElseThrow());
             String origin = base.getScheme() + "://" + base.getHost() + (base.getPort() == -1 ? "" : ":" + base.getPort());
 
@@ -169,23 +168,6 @@ class ServerStartBossBar {
         ws.sendText(new Gson().toJson(payload), true);
     }
 
-    private PterodactylWebSocketCredentialsResponse.Data getWebsocketCredentials(String serverIdentifier, Configuration configuration) {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(configuration.getPterodactylClientApiBaseURL().orElseThrow() + "/servers/" + serverIdentifier + "/websocket"))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + configuration.getPterodactylApiKey().orElseThrow())
-                .GET()
-                .build();
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            PterodactylWebSocketCredentialsResponse wsCreds = new Gson().fromJson(response.body(), PterodactylWebSocketCredentialsResponse.class);
-            return wsCreds.getData();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private record Phase(Pattern pattern, String key, float progress) {
+    private record Phase(Pattern pattern, float progress) {
     }
 }
