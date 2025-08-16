@@ -30,7 +30,6 @@ public class StartingServer implements ForwardingAudience {
     private final Messager messager;
     private final AtomicBoolean isStarting = new AtomicBoolean(false);
     private ServerStartBossBar bossBar;
-    private static final Set<StartingServer> INSTANCES = ConcurrentHashMap.newKeySet();
 
     public StartingServer(RegisteredServer server, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager, Logger logger, Messager messager) {
         this.server = server;
@@ -38,7 +37,6 @@ public class StartingServer implements ForwardingAudience {
         this.shutdownManager = shutdownManager;
         this.logger = logger;
         this.messager = messager;
-        INSTANCES.add(this);
         reloadBossBar();
     }
 
@@ -150,7 +148,7 @@ public class StartingServer implements ForwardingAudience {
         return waitingPlayers;
     }
 
-    private void reloadBossBar() {
+    public void reloadBossBar() {
         if (bossBar != null) {
             bossBar.stop();
         }
@@ -162,9 +160,4 @@ public class StartingServer implements ForwardingAudience {
         }
     }
 
-    public static void reloadAll() {
-        for (StartingServer server : INSTANCES) {
-            server.reloadBossBar();
-        }
-    }
 }

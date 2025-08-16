@@ -46,6 +46,10 @@ public class ConnectionListener {
         this.messager = new Messager();
     }
 
+    public void reloadStartingServers() {
+        startingServers.values().forEach(StartingServer::reloadBossBar);
+    }
+
     @Subscribe()
     public void onServerConnected(ServerConnectedEvent event) {
         Optional<RegisteredServer> previousServer = event.getPreviousServer();

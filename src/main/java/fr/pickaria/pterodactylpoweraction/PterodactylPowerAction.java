@@ -12,6 +12,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import fr.pickaria.pterodactylpoweraction.commands.PterodactylPowerActionCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
+import fr.pickaria.pterodactylpoweraction.ConnectionListener;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -35,6 +36,7 @@ public class PterodactylPowerAction {
     private final Logger logger;
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
+    private ConnectionListener connectionListener;
 
     @Inject
     public PterodactylPowerAction(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -46,6 +48,15 @@ public class PterodactylPowerAction {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        try {
+            connectionListener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
+            proxy.getEventManager().register(this, connectionListener);
+        } catch (NoSuchElementException e) {
+            logger.error("Error loading listener", e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Cannot load the configuration file", e);
+        }
+
         this.initializeCommand();
 
         initializeTranslator(
@@ -53,15 +64,6 @@ public class PterodactylPowerAction {
                 ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.ENGLISH, UTF8ResourceBundleControl.get()),
                 ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.GERMAN, UTF8ResourceBundleControl.get())
         );
-
-        try {
-            ConnectionListener listener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
-            proxy.getEventManager().register(this, listener);
-        } catch (NoSuchElementException e) {
-            logger.error("Error loading listener", e);
-        } catch (IllegalArgumentException e) {
-            logger.error("Cannot load the configuration file", e);
-        }
 
         boolean shouldStartWaitingServer = configurationLoader.getConfiguration().shouldStartWaitingServer();
         if (shouldStartWaitingServer) {
@@ -86,7 +88,8 @@ public class PterodactylPowerAction {
 
     private void initializeCommand() {
         CommandManager commandManager = proxy.getCommandManager();
-        PterodactylPowerActionCommand pterodactylPowerActionCommand = new PterodactylPowerActionCommand(proxy, logger, configurationLoader, shutdownManager);
+        PterodactylPowerActionCommand pterodactylPowerActionCommand =
+                new PterodactylPowerActionCommand(proxy, logger, configurationLoader, shutdownManager, connectionListener);
         BrigadierCommand commandToRegister = pterodactylPowerActionCommand.createBrigadierCommand();
         commandManager.register(pterodactylPowerActionCommand.getCommandMeta(commandManager, this), commandToRegister);
     }
