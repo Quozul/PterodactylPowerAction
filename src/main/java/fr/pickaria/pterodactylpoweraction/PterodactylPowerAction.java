@@ -10,8 +10,13 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import fr.pickaria.pterodactylpoweraction.commands.PterodactylPowerActionCommand;
+import fr.pickaria.pterodactylpoweraction.configuration.QueueConfig;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
+import fr.pickaria.pterodactylpoweraction.listeners.PowerAction;
+import fr.pickaria.pterodactylpoweraction.listeners.Queue;
+import fr.pickaria.pterodactylpoweraction.queue.QueueService;
+import fr.pickaria.pterodactylpoweraction.tasks.QueueNotifier;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -33,6 +38,7 @@ import java.util.ResourceBundle;
 public class PterodactylPowerAction {
     private final ProxyServer proxy;
     private final Logger logger;
+    private final Path dataDirectory;
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
 
@@ -40,6 +46,7 @@ public class PterodactylPowerAction {
     public PterodactylPowerAction(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxy = server;
         this.logger = logger;
+        this.dataDirectory = dataDirectory;
         this.configurationLoader = new ConfigurationLoader(logger, dataDirectory);
         this.shutdownManager = new ShutdownManager(proxy, this, configurationLoader, logger);
     }
@@ -55,8 +62,14 @@ public class PterodactylPowerAction {
         );
 
         try {
-            ConnectionListener listener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
+            PowerAction powerAction = new PowerAction(configurationLoader, proxy, logger, shutdownManager);
+            QueueConfig configManager = new QueueConfig(logger, dataDirectory);
+            QueueService queueService = new QueueService();
+            QueueNotifier queueNotifier = new QueueNotifier(proxy, this, queueService);
+            Queue queue = new Queue(proxy, queueService, configManager);
+            ConnectionListener listener = new ConnectionListener(powerAction, queue);
             proxy.getEventManager().register(this, listener);
+            queueNotifier.start();
         } catch (NoSuchElementException e) {
             logger.error("Error loading listener", e);
         } catch (IllegalArgumentException e) {
