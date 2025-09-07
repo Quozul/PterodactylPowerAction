@@ -6,6 +6,7 @@ import com.velocitypowered.api.scheduler.ScheduledTask;
 import com.velocitypowered.api.scheduler.Scheduler;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
+import fr.pickaria.pterodactylpoweraction.state.MotdCache;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -21,9 +22,9 @@ public class ShutdownManager {
     private final Map<String, ScheduledTask> shutdownTasks = new HashMap<>();
     private final Logger logger;
 
-    private final fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache;
+    private final MotdCache motdCache;
 
-    public ShutdownManager(ProxyServer proxy, PterodactylPowerAction plugin, ConfigurationLoader configurationLoader, Logger logger, fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache) {
+    public ShutdownManager(ProxyServer proxy, PterodactylPowerAction plugin, ConfigurationLoader configurationLoader, Logger logger, MotdCache motdCache) {
         assert instance == null; // Simply to make sure we only instantiate this class once
         instance = this;
 

@@ -32,12 +32,12 @@ public class PterodactylPowerActionCommand {
     private final ShutdownManager shutdownManager;
     private final Messager messager;
 
-    public PterodactylPowerActionCommand(ProxyServer proxy, Logger logger, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager) {
+    public PterodactylPowerActionCommand(ProxyServer proxy, Logger logger, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager, Messager messager) {
         this.proxy = proxy;
         this.logger = logger;
         this.configurationLoader = configurationLoader;
         this.shutdownManager = shutdownManager;
-        this.messager = new Messager();
+        this.messager = messager;
     }
 
     public BrigadierCommand createBrigadierCommand() {

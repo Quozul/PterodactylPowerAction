@@ -9,9 +9,16 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import fr.pickaria.messager.Messager;
 import fr.pickaria.pterodactylpoweraction.commands.PterodactylPowerActionCommand;
+import fr.pickaria.pterodactylpoweraction.configuration.QueueConfig;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
+import fr.pickaria.pterodactylpoweraction.listeners.PowerAction;
+import fr.pickaria.pterodactylpoweraction.listeners.Queue;
+import fr.pickaria.pterodactylpoweraction.queue.QueueService;
+import fr.pickaria.pterodactylpoweraction.state.MotdCache;
+import fr.pickaria.pterodactylpoweraction.tasks.QueueNotifier;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -33,17 +40,21 @@ import java.util.ResourceBundle;
 public class PterodactylPowerAction {
     private final ProxyServer proxy;
     private final Logger logger;
+    private final Path dataDirectory;
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
-    private final fr.pickaria.pterodactylpoweraction.state.MotdCache motdCache;
+    private final MotdCache motdCache;
+    private final Messager messager;
 
     @Inject
     public PterodactylPowerAction(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxy = server;
         this.logger = logger;
+        this.dataDirectory = dataDirectory;
         this.configurationLoader = new ConfigurationLoader(logger, dataDirectory);
-        this.motdCache = new fr.pickaria.pterodactylpoweraction.state.MotdCache(dataDirectory, logger);
+        this.motdCache = new MotdCache(dataDirectory, logger);
         this.shutdownManager = new ShutdownManager(proxy, this, configurationLoader, logger, motdCache);
+        this.messager = Messager.builder().build();
     }
 
     @Subscribe
@@ -57,10 +68,17 @@ public class PterodactylPowerAction {
         );
 
         try {
-            ConnectionListener listener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
+            PowerAction powerAction = new PowerAction(configurationLoader, proxy, logger, shutdownManager, messager);
+            QueueConfig configManager = new QueueConfig(logger, dataDirectory);
+            QueueService queueService = new QueueService();
+            QueueNotifier queueNotifier = new QueueNotifier(proxy, this, queueService, messager);
+            Queue queue = new Queue(proxy, queueService, configManager, messager);
+
+            ConnectionListener listener = new ConnectionListener(powerAction, queue);
             proxy.getEventManager().register(this, listener);
             PingListener pingListener = new PingListener(configurationLoader, proxy, motdCache, logger);
             proxy.getEventManager().register(this, pingListener);
+            queueNotifier.start();
         } catch (NoSuchElementException e) {
             logger.error("Error loading listener", e);
         } catch (IllegalArgumentException e) {
@@ -90,7 +108,7 @@ public class PterodactylPowerAction {
 
     private void initializeCommand() {
         CommandManager commandManager = proxy.getCommandManager();
-        PterodactylPowerActionCommand pterodactylPowerActionCommand = new PterodactylPowerActionCommand(proxy, logger, configurationLoader, shutdownManager);
+        PterodactylPowerActionCommand pterodactylPowerActionCommand = new PterodactylPowerActionCommand(proxy, logger, configurationLoader, shutdownManager, messager);
         BrigadierCommand commandToRegister = pterodactylPowerActionCommand.createBrigadierCommand();
         commandManager.register(pterodactylPowerActionCommand.getCommandMeta(commandManager, this), commandToRegister);
     }
