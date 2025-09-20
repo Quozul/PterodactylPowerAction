@@ -12,6 +12,8 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import fr.pickaria.pterodactylpoweraction.commands.PterodactylPowerActionCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
+import fr.pickaria.pterodactylpoweraction.listeners.StartServerListener;
+import fr.pickaria.pterodactylpoweraction.listeners.WhitelistListener;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -55,8 +57,9 @@ public class PterodactylPowerAction {
         );
 
         try {
-            ConnectionListener listener = new ConnectionListener(configurationLoader, proxy, logger, shutdownManager);
-            proxy.getEventManager().register(this, listener);
+            proxy.getEventManager().register(this, new ConnectionListener(configurationLoader, proxy, logger));
+            proxy.getEventManager().register(this, new StartServerListener(configurationLoader, proxy, logger, shutdownManager));
+            proxy.getEventManager().register(this, new WhitelistListener(configurationLoader, logger));
         } catch (NoSuchElementException e) {
             logger.error("Error loading listener", e);
         } catch (IllegalArgumentException e) {

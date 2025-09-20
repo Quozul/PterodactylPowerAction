@@ -1,6 +1,5 @@
 package fr.pickaria.pterodactylpoweraction;
 
-import com.google.gson.JsonSyntaxException;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.KickedFromServerEvent;
@@ -16,11 +15,11 @@ import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.component.RunCommand;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweractionapi.events.ScheduleShutdownServerEvent;
+import fr.pickaria.pterodactylpoweractionapi.events.StartServerEvent;
 import net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -29,20 +28,16 @@ public class ConnectionListener {
     private final ProxyServer proxy;
     private final Logger logger;
     private final ConfigurationLoader configurationLoader;
-    private final Map<String, StartingServer> startingServers = new HashMap<>();
-    private final ShutdownManager shutdownManager;
     private final Messager messager;
 
     ConnectionListener(
             ConfigurationLoader configurationLoader,
             ProxyServer proxy,
-            Logger logger,
-            ShutdownManager shutdownManager
+            Logger logger
     ) {
         this.configurationLoader = configurationLoader;
         this.proxy = proxy;
         this.logger = logger;
-        this.shutdownManager = shutdownManager;
         this.messager = new Messager();
     }
 
@@ -52,93 +47,31 @@ public class ConnectionListener {
         // Check if we can shut down the previous server once the player has been redirected
         // This applies to redirection if the server is already running
         // and the automatic redirection after a server has been started
-        previousServer.ifPresent(shutdownManager::scheduleShutdown);
+        previousServer.ifPresent(this::scheduleServerShutdown);
     }
 
     @Subscribe()
     public void onServerPreConnect(ServerPreConnectEvent event) {
         RegisteredServer originalServer = event.getOriginalServer();
 
-        if (!this.isManagedServer(originalServer) || !isAllowedToStart(originalServer, event)) {
+        if (!this.isManagedServer(originalServer)) {
             return;
         }
 
         RegisteredServer previousServer = event.getPreviousServer();
-        shutdownManager.cancelTask(originalServer);
 
-        if (isReachable(originalServer)) {
-            // Server pinged successfully, we can connect the player to this server
-            event.setResult(ServerPreConnectEvent.ServerResult.allowed(originalServer));
-        } else {
-            boolean isAlreadyConnected = previousServer != null;
-            if (isAlreadyConnected) {
-                // If the player is already connected on the network, we don't want to redirect it to the waiting server
-                event.setResult(ServerPreConnectEvent.ServerResult.denied());
+        boolean isAlreadyConnected = previousServer != null;
+        try {
+            StartServerEvent startServerEvent = proxy.getEventManager().fire(new StartServerEvent(event.getPlayer(), originalServer, isAlreadyConnected)).get();
+            StartServerEvent.StartServerResult result = startServerEvent.getResult();
+            if (result.isAllowed() && result.getServer().isPresent()) {
+                RegisteredServer server = result.getServer().get();
+                event.setResult(ServerPreConnectEvent.ServerResult.allowed(server));
             } else {
-                Optional<RegisteredServer> waitingServer = getWaitingServer();
-
-                if (waitingServer.isPresent() && waitingServer.get() != originalServer && isReachable(waitingServer.get())) {
-                    // Server is not running, inform the player and redirect somewhere else
-                    event.setResult(ServerPreConnectEvent.ServerResult.allowed(waitingServer.get()));
-                } else {
-                    // If the waiting server is not reachable, we kick the player instead
-                    event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                    event.getPlayer().disconnect(Component.translatable("kick.server.starting", Component.text(originalServer.getServerInfo().getName())));
-                }
-            }
-
-            startServerForPlayer(originalServer, event.getPlayer());
-        }
-    }
-
-    private boolean isAllowedToStart(RegisteredServer originalServer, ServerPreConnectEvent event) {
-        String serverName = originalServer.getServerInfo().getName();
-        Player player = event.getPlayer();
-        if (configurationLoader.getConfiguration().shouldCheckWhitelist(serverName)) {
-            try {
-                boolean whitelisted = configurationLoader.getAPI()
-                        .isPlayerWhitelisted(serverName, player.getUsername())
-                        .get();
-                if (!whitelisted) {
-                    event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                    notifyPlayerOrDisconnect(player, "whitelist.not.whitelisted");
-                    return false;
-                }
-            } catch (ExecutionException | InterruptedException | JsonSyntaxException e) {
-                logger.error("Failed to check whitelist for server {}", serverName, e);
                 event.setResult(ServerPreConnectEvent.ServerResult.denied());
-                notifyPlayerOrDisconnect(player, "whitelist.verification.failed");
-                return false;
             }
-        }
-        return true;
-    }
-
-    private void notifyPlayerOrDisconnect(Player player, String key) {
-        if (player.getCurrentServer().isPresent()) {
-            messager.error(player, key);
-        } else {
-            player.disconnect(Component.translatable(key));
-        }
-    }
-
-    private void startServerForPlayer(RegisteredServer server, Player player) {
-        String originalServerName = server.getServerInfo().getName();
-        boolean playerAddedToWaitingList;
-
-        // This is cached so that we don't ping the same server for every player that is waiting for it to start
-        if (startingServers.containsKey(originalServerName)) {
-            playerAddedToWaitingList = startingServers.get(originalServerName).addPlayer(player);
-        } else {
-            StartingServer startingServer = new StartingServer(server, configurationLoader, shutdownManager, logger, messager);
-            playerAddedToWaitingList = startingServer.addPlayer(player);
-            startingServers.put(originalServerName, startingServer);
-            // TODO: Should we clear the entry from the map once the server is started?
-        }
-
-        if (playerAddedToWaitingList) {
-            Component message = messager.format(MessageType.INFO, "starting.server", new Text(Component.text(originalServerName)));
-            player.sendMessage(message);
+        } catch (InterruptedException | ExecutionException e) {
+            event.setResult(ServerPreConnectEvent.ServerResult.denied());
         }
     }
 
@@ -212,7 +145,7 @@ public class ConnectionListener {
 
     private void scheduleServerShutdown(RegisteredServer registeredServer) {
         if (this.isManagedServer(registeredServer)) {
-            shutdownManager.scheduleShutdown(registeredServer);
+            proxy.getEventManager().fire(new ScheduleShutdownServerEvent(registeredServer));
         }
     }
 

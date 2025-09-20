@@ -7,9 +7,18 @@ version = '1.7.0'
 
 repositories {
     mavenCentral()
+    maven {
+        name "pickariaRepositorySnapshots"
+        url "https://maven.pickaria.fr/snapshots"
+    }
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
 }
 
 dependencies {
+    compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 }
 
 def targetJavaVersion = 17
