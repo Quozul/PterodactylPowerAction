@@ -2,6 +2,7 @@ package fr.pickaria.pterodactylpoweractionapi.events;
 
 import com.google.common.base.Preconditions;
 import com.velocitypowered.api.event.ResultedEvent;
+import com.velocitypowered.api.event.annotation.AwaitingEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
@@ -16,12 +17,13 @@ public class StartServerEvent implements ResultedEvent<StartServerEvent.StartSer
     private final RegisteredServer targetServer;
     private final boolean isAlreadyConnected;
 
-    private StartServerResult result = StartServerResult.denied();
+    private StartServerResult result;
 
     public StartServerEvent(Player player, RegisteredServer targetServer, boolean isAlreadyConnected) {
         this.player = player;
         this.targetServer = targetServer;
         this.isAlreadyConnected = isAlreadyConnected;
+        this.result = StartServerResult.allowed(targetServer);
     }
 
     public Player player() {
@@ -71,6 +73,14 @@ public class StartServerEvent implements ResultedEvent<StartServerEvent.StartSer
 
         public boolean isAllowed() {
             return server != null;
+        }
+
+        public ServerPreConnectEvent.ServerResult toServerResult() {
+            if (server == null) {
+                return ServerPreConnectEvent.ServerResult.denied();
+            } else {
+                return ServerPreConnectEvent.ServerResult.allowed(server);
+            }
         }
     }
 }

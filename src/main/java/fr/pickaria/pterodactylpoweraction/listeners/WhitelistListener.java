@@ -28,28 +28,26 @@ public class WhitelistListener {
 
     @Subscribe(priority = 10)
     public void onStartServer(StartServerEvent event) {
-        StartServerEvent.StartServerResult result = isAllowedToStart(event.targetServer(), event.player());
-        event.setResult(result);
-    }
-
-    private StartServerEvent.StartServerResult isAllowedToStart(RegisteredServer originalServer, Player player) {
-        String serverName = originalServer.getServerInfo().getName();
-        if (configurationLoader.getConfiguration().shouldCheckWhitelist(serverName)) {
-            try {
-                boolean whitelisted = configurationLoader.getAPI()
-                        .isPlayerWhitelisted(serverName, player.getUsername())
-                        .get();
-                if (!whitelisted) {
-                    notifyPlayerOrDisconnect(player, "whitelist.not.whitelisted");
-                    return StartServerEvent.StartServerResult.denied();
+        if (event.getResult().isAllowed()) {
+            RegisteredServer originalServer = event.targetServer();
+            Player player = event.player();
+            String serverName = originalServer.getServerInfo().getName();
+            if (configurationLoader.getConfiguration().shouldCheckWhitelist(serverName)) {
+                try {
+                    boolean whitelisted = configurationLoader.getAPI()
+                            .isPlayerWhitelisted(serverName, player.getUsername())
+                            .get();
+                    if (!whitelisted) {
+                        notifyPlayerOrDisconnect(player, "whitelist.not.whitelisted");
+                        event.setResult(StartServerEvent.StartServerResult.denied());
+                    }
+                } catch (ExecutionException | InterruptedException | JsonSyntaxException e) {
+                    logger.error("Failed to check whitelist for server {}", serverName, e);
+                    notifyPlayerOrDisconnect(player, "whitelist.verification.failed");
+                    event.setResult(StartServerEvent.StartServerResult.denied());
                 }
-            } catch (ExecutionException | InterruptedException | JsonSyntaxException e) {
-                logger.error("Failed to check whitelist for server {}", serverName, e);
-                notifyPlayerOrDisconnect(player, "whitelist.verification.failed");
-                return StartServerEvent.StartServerResult.denied();
             }
         }
-        return StartServerEvent.StartServerResult.allowed(originalServer);
     }
 
     private void notifyPlayerOrDisconnect(Player player, String key) {

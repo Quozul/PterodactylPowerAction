@@ -6,9 +6,11 @@ on:
       - '**'
     paths:
       - '.github/workflows/push.yml'
-      - 'gradle'
+      - 'gradle/**'
       - 'src/**'
+      - '*/src/**'
       - 'build.gradle'
+      - '*/build.gradle'
       - 'gradle.properties'
       - 'gradlew'
       - 'gradlew.bat'
@@ -28,11 +30,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build Jar
+      - name: Build All Jars
         run: ./gradlew jar
 
-      - name: Upload Jar Artifact
+      - name: Upload Root Project Jar Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jar-artifact
+          name: root-jar-artifact
           path: build/libs/*.jar
+        if: hashFiles('build/libs/*.jar') != ''
+
+      - name: Upload Subproject Jar Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: subproject-jar-artifacts
+          path: '*/build/libs/*.jar'
+        if: hashFiles('*/build/libs/*.jar') != ''

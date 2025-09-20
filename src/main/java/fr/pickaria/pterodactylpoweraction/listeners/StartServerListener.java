@@ -44,10 +44,7 @@ public class StartServerListener {
     public void onStartServer(StartServerEvent event) {
         if (event.getResult().isAllowed()) {
             RegisteredServer targetServer = event.targetServer();
-            if (isReachable(targetServer)) {
-                // Server pinged successfully, we can connect the player to this server
-                event.setResult(StartServerEvent.StartServerResult.allowed(targetServer));
-            } else {
+            if (!isReachable(targetServer)) {
                 // Server is not started
                 shutdownManager.cancelTask(targetServer);
                 if (event.isAlreadyConnected()) {

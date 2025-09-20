@@ -63,13 +63,7 @@ public class ConnectionListener {
         boolean isAlreadyConnected = previousServer != null;
         try {
             StartServerEvent startServerEvent = proxy.getEventManager().fire(new StartServerEvent(event.getPlayer(), originalServer, isAlreadyConnected)).get();
-            StartServerEvent.StartServerResult result = startServerEvent.getResult();
-            if (result.isAllowed() && result.getServer().isPresent()) {
-                RegisteredServer server = result.getServer().get();
-                event.setResult(ServerPreConnectEvent.ServerResult.allowed(server));
-            } else {
-                event.setResult(ServerPreConnectEvent.ServerResult.denied());
-            }
+            event.setResult(startServerEvent.getResult().toServerResult());
         } catch (InterruptedException | ExecutionException e) {
             event.setResult(ServerPreConnectEvent.ServerResult.denied());
         }

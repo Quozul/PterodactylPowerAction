@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'fr.pickaria'
-version = '1.7.0'
+version = '1.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
