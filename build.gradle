@@ -28,6 +28,7 @@ dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     implementation("fr.pickaria:messager:1.0-SNAPSHOT")
+    implementation project(":pterodactylpoweractionapi")
 }
 
 def targetJavaVersion = 17
@@ -36,7 +37,7 @@ java {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+    options.encoding = "UTF-8"
     options.release.set(targetJavaVersion)
 }
 
@@ -55,10 +56,10 @@ tasks {
     }
 }
 
-def templateSource = file('src/main/templates')
-def templateDest = layout.buildDirectory.dir('generated/sources/templates')
-def generateTemplates = tasks.register('generateTemplates', Copy) { task ->
-    def props = ['version': project.version]
+def templateSource = file("src/main/templates")
+def templateDest = layout.buildDirectory.dir("generated/sources/templates")
+def generateTemplates = tasks.register("generateTemplates", Copy) { task ->
+    def props = ["version": project.version]
     task.inputs.properties props
 
     task.from templateSource
