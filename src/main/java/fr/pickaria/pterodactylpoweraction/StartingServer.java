@@ -6,6 +6,7 @@ import com.velocitypowered.api.proxy.server.RegisteredServer;
 import fr.pickaria.messager.Messager;
 import fr.pickaria.messager.components.Text;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
+import fr.pickaria.pterodactylpoweraction.ServerStartBossBar;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
@@ -29,6 +30,8 @@ public class StartingServer implements ForwardingAudience {
     private final Logger logger;
     private final Messager messager;
     private final AtomicBoolean isStarting = new AtomicBoolean(false);
+    private ServerStartBossBar bossBar;
+    private static final Set<StartingServer> INSTANCES = ConcurrentHashMap.newKeySet();
 
     public StartingServer(RegisteredServer server, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager, Logger logger, Messager messager) {
         this.server = server;
@@ -36,6 +39,8 @@ public class StartingServer implements ForwardingAudience {
         this.shutdownManager = shutdownManager;
         this.logger = logger;
         this.messager = messager;
+        INSTANCES.add(this);
+        reloadBossBar();
     }
 
     /**
@@ -48,6 +53,10 @@ public class StartingServer implements ForwardingAudience {
     public boolean addPlayer(Player player) {
         boolean added = waitingPlayers.add(player);
 
+        if (bossBar != null && added) {
+            bossBar.addPlayer(player);
+        }
+
         if (isStarting.compareAndSet(false, true)) {
             String serverName = server.getServerInfo().getName();
             fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STARTING);
@@ -58,6 +67,9 @@ public class StartingServer implements ForwardingAudience {
                     informError(exception);
                 }
             });
+            if (bossBar != null) {
+                bossBar.start();
+            }
         }
 
         return added;
@@ -87,8 +99,12 @@ public class StartingServer implements ForwardingAudience {
         } catch (CompletionException | CancellationException | ExecutionException | InterruptedException exception) {
             informError(exception);
         } finally {
-            isStarting.set(false);
-            waitingPlayers.clear();
+            if (isStarting.getAndSet(false)) {
+                waitingPlayers.clear();
+                if (bossBar != null) {
+                    bossBar.stop();
+                }
+            }
         }
     }
 
@@ -97,6 +113,11 @@ public class StartingServer implements ForwardingAudience {
         logger.error("An error occurred while starting the server '{}'", serverName, throwable);
         fr.pickaria.pterodactylpoweraction.state.ServerStateManager.setState(serverName, fr.pickaria.pterodactylpoweraction.state.ServerState.STOPPED);
         messager.error(this, "failed.to.start.server", new Text(Component.text(serverName)));
+        if (bossBar != null) {
+            bossBar.stop();
+        }
+        waitingPlayers.clear();
+        isStarting.set(false);
     }
 
     private void waitForServer() throws ExecutionException, InterruptedException {
@@ -107,6 +128,10 @@ public class StartingServer implements ForwardingAudience {
         String serverName = server.getServerInfo().getName();
         Component serverNameComponent = Component.text(serverName);
         try {
+            if (bossBar != null) {
+                bossBar.removePlayer(player);
+            }
+            waitingPlayers.remove(player);
             ConnectionRequestBuilder.Result result = player.createConnectionRequest(server).connect().get();
             if (result.isSuccessful()) {
                 return result.isSuccessful();
@@ -131,5 +156,23 @@ public class StartingServer implements ForwardingAudience {
     @Override
     public @NotNull Iterable<? extends Audience> audiences() {
         return waitingPlayers;
+    }
+
+    private void reloadBossBar() {
+        if (bossBar != null) {
+            bossBar.stop();
+        }
+        bossBar = configurationLoader.getConfiguration().isBossBarEnabled()
+                ? new ServerStartBossBar(this, configurationLoader.getConfiguration(), server.getServerInfo().getName(), logger)
+                : null;
+        if (bossBar != null && isStarting.get()) {
+            bossBar.start();
+        }
+    }
+
+    public static void reloadAll() {
+        for (StartingServer server : INSTANCES) {
+            server.reloadBossBar();
+        }
     }
 }
