@@ -5,8 +5,6 @@ import fr.pickaria.pterodactylpoweraction.Configuration;
 import fr.pickaria.pterodactylpoweraction.OnlineChecker;
 import fr.pickaria.pterodactylpoweraction.PowerActionAPI;
 import fr.pickaria.pterodactylpoweraction.api.PterodactylAPI;
-import fr.pickaria.pterodactylpoweraction.api.ShellCommandAPI;
-import fr.pickaria.pterodactylpoweraction.online.PingOnlineChecker;
 import fr.pickaria.pterodactylpoweraction.online.PterodactylOnlineChecker;
 import org.slf4j.Logger;
 
@@ -43,23 +41,12 @@ public class ConfigurationLoader {
     }
 
     public PowerActionAPI getAPI() throws IllegalArgumentException {
-        if (getConfiguration().getAPIType() == APIType.PTERODACTYL) {
-            return new PterodactylAPI(logger, getConfiguration());
-        }
-        if (getConfiguration().getAPIType() == APIType.SHELL) {
-            return new ShellCommandAPI(logger, getConfiguration());
-        }
-        throw new IllegalArgumentException("Unsupported API type: " + getConfiguration().getAPIType());
+        return new PterodactylAPI(logger, getConfiguration());
     }
 
     public OnlineChecker getOnlineChecker(RegisteredServer server) {
         Configuration configuration = getConfiguration();
-
-        if (configuration.getPingMethod() == PingMethod.PTERODACTYL) {
-            return new PterodactylOnlineChecker(server, configuration);
-        } else {
-            return new PingOnlineChecker(server, configuration);
-        }
+        return new PterodactylOnlineChecker(server, configuration);
     }
 
     /**

@@ -23,7 +23,6 @@ public class YamlConfiguration implements Configuration {
     private static final Duration DEFAULT_MAXIMUM_PING_DURATION = Duration.ofMinutes(1);
     private static final boolean DEFAULT_REDIRECT_TO_WAITING_SERVER_ON_KICK = false;
     private static final boolean DEFAULT_START_WAITING_SERVER = true;
-    private static final PingMethod DEFAULT_PING_METHOD = PingMethod.PING;
     private static final boolean DEFAULT_STATE_PING = false;
     private static final boolean DEFAULT_CACHE_MOTD = false;
     private static final boolean DEFAULT_STATE_MOTD = false;
@@ -41,12 +40,6 @@ public class YamlConfiguration implements Configuration {
     @Override
     public Map<String, Object> getRawConfig() {
         return config;
-    }
-
-    @Override
-    public APIType getAPIType() throws IllegalArgumentException {
-        String type = getRequired("type", String.class);
-        return APIType.valueOf(type.toUpperCase());
     }
 
     @Override
@@ -100,14 +93,6 @@ public class YamlConfiguration implements Configuration {
     }
 
     @Override
-    public PingMethod getPingMethod() {
-        return get("ping_method", String.class)
-                .map(String::toUpperCase)
-                .map(PingMethod::valueOf)
-                .orElse(DEFAULT_PING_METHOD);
-    }
-
-    @Override
     public Duration getMaximumPingDuration() {
         return getDuration("maximum_ping_duration", DEFAULT_MAXIMUM_PING_DURATION);
     }
@@ -127,9 +112,6 @@ public class YamlConfiguration implements Configuration {
 
     @Override
     public boolean isBossBarEnabled() {
-        if (getAPIType() == APIType.SHELL) {
-            return false;
-        }
         return getBoolean("bossbar", DEFAULT_BOSSBAR_ENABLED);
     }
 
@@ -169,31 +151,6 @@ public class YamlConfiguration implements Configuration {
     @Override
     public boolean getStateMotd() {
         return getBoolean("state_motd", DEFAULT_STATE_MOTD);
-    }
-
-    @Override
-    public Optional<PowerCommands> getPowerCommands(String serverName) {
-        try {
-            Map<String, Object> serverConfiguration = (Map<String, Object>) getServerConfiguration(serverName);
-
-            if (!serverConfiguration.containsKey("start")) {
-                logger.error("'servers.{}.start' is missing from the configuration file", serverName);
-                return Optional.empty();
-            }
-
-            if (!serverConfiguration.containsKey("stop")) {
-                logger.error("'servers.{}.stop' is missing from the configuration file", serverName);
-                return Optional.empty();
-            }
-
-            Optional<String> workingDirectory = Optional.ofNullable((String) serverConfiguration.get("working_directory"));
-            String startCommands = (String) serverConfiguration.get("start");
-            String stopCommands = (String) serverConfiguration.get("stop");
-
-            return Optional.of(new PowerCommands(workingDirectory, startCommands, stopCommands));
-        } catch (NoSuchElementException e) {
-            return Optional.empty();
-        }
     }
 
     private Map<String, Object> getServerMap() {

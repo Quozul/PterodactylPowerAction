@@ -2,7 +2,6 @@ package fr.pickaria.pterodactylpoweraction;
 
 import com.google.gson.Gson;
 import com.velocitypowered.api.proxy.Player;
-import fr.pickaria.pterodactylpoweraction.configuration.APIType;
 import fr.pickaria.pterodactylpoweraction.online.PterodactylWebSocketCredentialsResponse;
 import fr.pickaria.pterodactylpoweraction.online.PterodactylWebSocketPayload;
 import net.kyori.adventure.bossbar.BossBar;
@@ -70,9 +69,7 @@ class ServerStartBossBar {
         scheduler.schedule(() -> {
             if (webSocket != null) webSocket.abort();
         }, MAX_DURATION.toSeconds(), TimeUnit.SECONDS);
-        if (configuration.getAPIType() == APIType.PTERODACTYL) {
-            startWebSocketWatcher();
-        }
+        startWebSocketWatcher();
     }
 
     void addPlayer(Player player) {

@@ -32,8 +32,8 @@ import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 
 @Plugin(
-        id = "pterodactyl_power_action",
-        name = "PterodactylPowerAction",
+        id = "pterodactyl_power_action_plus",
+        name = "PterodactylPowerActionPlus",
         version = BuildConstants.VERSION,
         authors = {"Quozul"}
 )
