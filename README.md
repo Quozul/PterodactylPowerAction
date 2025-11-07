@@ -70,7 +70,16 @@ _Shader is Photon._
 
 ### Plus Version
 
-You can find more features on the [plus](https://github.com/Quozul/PterodactylPowerAction/tree/plus) branch.
+Additional features this branch provides:
+
+- 🎨 **Custom Server List Display** Fine-tune how your configured subserver appears in the multiplayer list with:
+    - `state_ping`: Replace the players/ping text with server state when offline or starting
+    - `cache_motd`: Cache the backend MOTD and display it while the server is offline
+    - `state_motd`: Show server state in the MOTD when offline or starting (disables `cache_motd`)
+- 🔄 **Seamless Player Experience**:
+    - Optional animated boss bar showing server startup progress (Pterodactyl API only)
+- **Global Queue**
+    - Redirect player to the limbo server until a slot frees up.
 
 ---
 
