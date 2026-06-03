@@ -11,6 +11,9 @@ shutting them down when idle, using either the [Pterodactyl](https://pterodactyl
 > [!IMPORTANT]  
 > Support for this project is limited as I don't use it in production anymore.
 
+> [!NOTE]
+> A full rewrite (version 2) of PterodactylPowerAction is planned.
+
 ---
 
 ## Community & Support
