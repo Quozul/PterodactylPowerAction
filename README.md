@@ -3,6 +3,9 @@
 A resource-saving Velocity plugin that automatically manages your Minecraft servers by starting them on demand and
 shutting them down when idle, using the [Crafty](https://craftycontrol.com/) API or shell commands.
 
+> [!NOTE]
+> A full rewrite (version 2) of PterodactylPowerAction is planned.
+
 ---
 
 > [!IMPORTANT]  
