@@ -28,7 +28,7 @@ repositories {
 dependencies {
     compileOnly("com.velocitypowered:velocity-api:4.1.0-SNAPSHOT")
     annotationProcessor("com.velocitypowered:velocity-api:4.1.0-SNAPSHOT")
-    implementation("fr.pickaria:messager:1.0-SNAPSHOT")
+    implementation("fr.pickaria:messager:1.2-SNAPSHOT")
     implementation("org.apache.commons:commons-text:1.14.0")
 }
 
