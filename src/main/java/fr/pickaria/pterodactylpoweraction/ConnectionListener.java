@@ -43,7 +43,7 @@ public class ConnectionListener {
         this.proxy = proxy;
         this.logger = logger;
         this.shutdownManager = shutdownManager;
-        this.messager = new Messager();
+        this.messager = Messager.builder().build();
     }
 
     @Subscribe()

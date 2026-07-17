@@ -14,11 +14,11 @@ import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationLoader;
 import fr.pickaria.pterodactylpoweraction.configuration.ShutdownBehaviour;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
+import net.kyori.adventure.translation.TranslationStore;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -49,9 +49,9 @@ public class PterodactylPowerAction {
         this.initializeCommand();
 
         initializeTranslator(
-                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.FRENCH, UTF8ResourceBundleControl.get()),
-                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.ENGLISH, UTF8ResourceBundleControl.get()),
-                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.GERMAN, UTF8ResourceBundleControl.get())
+                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.FRENCH),
+                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.ENGLISH),
+                ResourceBundle.getBundle("PterodactylPowerAction.Bundle", Locale.GERMAN)
         );
 
         try {
@@ -76,12 +76,12 @@ public class PterodactylPowerAction {
     }
 
     private void initializeTranslator(ResourceBundle... bundles) {
-        TranslationRegistry registry = TranslationRegistry.create(Key.key("pickaria:power_action"));
+        TranslationStore.StringBased<MessageFormat> store = TranslationStore.messageFormat(Key.key("pickaria:power_action"));
         for (ResourceBundle bundle : bundles) {
-            registry.registerAll(bundle.getLocale(), bundle, true);
+            store.registerAll(bundle.getLocale(), bundle, true);
         }
-        registry.defaultLocale(Locale.ENGLISH);
-        GlobalTranslator.translator().addSource(registry);
+        store.defaultLocale(Locale.ENGLISH);
+        GlobalTranslator.translator().addSource(store);
     }
 
     private void initializeCommand() {

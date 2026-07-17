@@ -10,10 +10,11 @@ version = '1.8.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven {
-        name "pickariaRepositorySnapshots"
-        url "https://maven.pickaria.fr/snapshots"
-    }
+    mavenLocal()
+    //maven {
+    //    name "pickariaRepositorySnapshots"
+    //    url "https://maven.pickaria.fr/snapshots"
+    //}
     maven {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
@@ -25,13 +26,13 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    annotationProcessor("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
-    implementation("fr.pickaria:messager:1.0-SNAPSHOT")
+    compileOnly("com.velocitypowered:velocity-api:4.1.0-SNAPSHOT")
+    annotationProcessor("com.velocitypowered:velocity-api:4.1.0-SNAPSHOT")
+    implementation("fr.pickaria:messager:1.2-SNAPSHOT")
     implementation("org.apache.commons:commons-text:1.14.0")
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 25
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
 }
@@ -52,7 +53,7 @@ tasks {
         // Configure the Velocity version for our task.
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
-        velocityVersion("3.4.0-SNAPSHOT")
+        velocityVersion("4.1.0-SNAPSHOT")
     }
 }
 
