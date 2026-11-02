@@ -1,12 +1,11 @@
 package fr.pickaria.pterodactylpoweraction.component;
 
-import fr.pickaria.messager.MessageComponent;
-import fr.pickaria.messager.configuration.MessageConfiguration;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
-public class RunCommand implements MessageComponent {
+public class RunCommand {
     private final String command;
     private final Component displayComponent;
 
@@ -17,19 +16,18 @@ public class RunCommand implements MessageComponent {
         this.displayComponent = displayComponent;
     }
 
-    @Override
-    public Component getComponent(MessageConfiguration messageConfiguration) {
-        return accented(displayComponent, messageConfiguration)
+    public Component getComponent(TextColor accentColor) {
+        return accented(displayComponent, accentColor)
                 .decorate(TextDecoration.UNDERLINED)
                 .clickEvent(ClickEvent.runCommand(this.command))
-                .hoverEvent(getHoverComponent(messageConfiguration));
+                .hoverEvent(getHoverComponent(accentColor));
     }
 
-    private Component accented(Component component, MessageConfiguration messageConfiguration) {
-        return component.color(messageConfiguration.accent());
+    private Component accented(Component component, TextColor accentColor) {
+        return component.color(accentColor);
     }
 
-    Component getHoverComponent(MessageConfiguration messageConfiguration) {
-        return Component.translatable("run.command", accented(Component.text(command.trim()), messageConfiguration));
+    private Component getHoverComponent(TextColor accentColor) {
+        return Component.translatable("run.command", accented(Component.text(command.trim()), accentColor));
     }
 }
