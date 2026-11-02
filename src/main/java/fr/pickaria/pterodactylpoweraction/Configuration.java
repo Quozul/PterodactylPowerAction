@@ -40,6 +40,8 @@ public interface Configuration {
 
     boolean shouldCheckWhitelist(String serverName);
 
+    boolean shouldAutoShutdown(String serverName);
+
     record PowerCommands(Optional<String> workingDirectory, String start, String stop) {
     }
 }
