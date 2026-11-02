@@ -37,6 +37,13 @@ public class ShutdownManager {
      * @param server The server we want to shut down
      */
     public void scheduleShutdown(RegisteredServer server) {
+        String serverName = getServerName(server);
+
+        if (!configurationLoader.getConfiguration().shouldAutoShutdown(serverName)) {
+            logger.debug("Server '{}' is excluded from automatic shutdown.", serverName);
+            return;
+        }
+
         scheduleShutdown(server, configurationLoader.getConfiguration().getShutdownAfterDuration());
     }
 

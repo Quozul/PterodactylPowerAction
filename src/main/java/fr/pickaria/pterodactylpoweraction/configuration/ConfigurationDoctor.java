@@ -112,6 +112,11 @@ public class ConfigurationDoctor {
                             logger.warn("'servers.{}.whitelist' must be a boolean if specified.", key);
                             isValid = false;
                         }
+                        Object autoShutdown = serverConfig.get("auto_shutdown");
+                        if (autoShutdown != null && !(autoShutdown instanceof Boolean)) {
+                            logger.warn("'servers.{}.auto_shutdown' must be a boolean if specified.", key);
+                            isValid = false;
+                        }
                     }
 
                     if (apiType == APIType.PTERODACTYL) {

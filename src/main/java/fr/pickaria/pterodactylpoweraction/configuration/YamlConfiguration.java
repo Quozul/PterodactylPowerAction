@@ -142,6 +142,21 @@ public class YamlConfiguration implements Configuration {
     }
 
     @Override
+    public boolean shouldAutoShutdown(String serverName) {
+        try {
+            Object configuration = getServerConfiguration(serverName);
+            if (configuration instanceof Map serverConfiguration) {
+                Object autoShutdown = serverConfiguration.get("auto_shutdown");
+                if (autoShutdown instanceof Boolean) {
+                    return (Boolean) autoShutdown;
+                }
+            }
+        } catch (NoSuchElementException ignored) {
+        }
+        return true;
+    }
+
+    @Override
     public Optional<PowerCommands> getPowerCommands(String serverName) {
         try {
             Map<String, Object> serverConfiguration = (Map<String, Object>) getServerConfiguration(serverName);

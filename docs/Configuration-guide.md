@@ -51,14 +51,15 @@ servers:
     whitelist: true
 ```
 
-| Option                            | Description                                                |
-|-----------------------------------|------------------------------------------------------------|
-| `pterodactyl_api_key`             | Client API key from Pterodactyl panel                      |
-| `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                    |
-| `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs |
-| `whitelist`                       | Enable whitelist verification using `whitelist.json` file  |
+| Option                            | Description                                                          |
+|-----------------------------------|----------------------------------------------------------------------|
+| `pterodactyl_api_key`             | Client API key from Pterodactyl panel                                |
+| `pterodactyl_client_api_base_url` | Base URL for the Pterodactyl client API                              |
+| `servers`                         | Mapping of Velocity server names to Pterodactyl server IDs           |
+| `whitelist`                       | Enable whitelist verification using `whitelist.json` file            |
+| `auto_shutdown`                   | Automatically stop the server when it becomes empty (default `true`) |
 
-Each server entry may either be a simple string containing the server's identifier or a map with an `identifier` field. When using the map form, an optional `whitelist` boolean can enable whitelist verification for that server.
+Each server entry may either be a simple string containing the server's identifier or a map with an `identifier` field. When using the map form, an optional `whitelist` boolean can enable whitelist verification for that server, and an optional `auto_shutdown` boolean can exclude the server from automatic idle shutdown.
 
 ### Shell-Specific Settings
 
@@ -71,14 +72,31 @@ servers:
     start: "command to start server"
     stop: "command to stop server"
     whitelist: true  # Optional
+    auto_shutdown: true  # Optional, defaults to true
 ```
 
-| Option              | Description                                               |
-|---------------------|-----------------------------------------------------------|
-| `working_directory` | Directory to run commands from (optional)                 |
-| `start`             | Command to start the server                               |
-| `stop`              | Command to stop the server                                |
-| `whitelist`         | Enable whitelist verification using `whitelist.json` file |
+| Option              | Description                                                            |
+|---------------------|------------------------------------------------------------------------|
+| `working_directory` | Directory to run commands from (optional)                              |
+| `start`             | Command to start the server                                            |
+| `stop`              | Command to stop the server                                             |
+| `whitelist`         | Enable whitelist verification using `whitelist.json` file             |
+| `auto_shutdown`     | Automatically stop the server when it becomes empty (default `true`)   |
+
+## Automatic Shutdown
+
+The `shutdown_after_duration` setting controls how long a server may stay empty before it is automatically stopped. To
+keep specific servers running even when they are empty, set `auto_shutdown: false` on that server:
+
+```yaml
+servers:
+  lobby:
+    identifier: "21b8d887-7d47-4a0b-bbfe-4c4a6318dcf0"
+    auto_shutdown: false
+```
+
+This only disables the automatic idle shutdown. The `/ppa clear` command and the `shutdown_behaviour` used when the
+proxy shuts down still apply to excluded servers.
 
 ## Shutdown Behavior Options
 
@@ -143,6 +161,7 @@ servers:
     whitelist: true
   creative:
     identifier: "f33b8741-e46c-4386-9281-05eaa2e88333"
+    auto_shutdown: false
 waiting_server_name: "limbo"
 ping_method: "pterodactyl"
 maximum_ping_duration: 60
@@ -165,6 +184,7 @@ servers:
     working_directory: "/home/minecraft/servers"
     start: "docker compose start creative"
     stop: "docker compose stop creative"
+    auto_shutdown: false
 waiting_server_name: "limbo"
 ping_method: "ping"
 maximum_ping_duration: 60

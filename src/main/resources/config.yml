@@ -23,12 +23,17 @@ servers:
   survival:
     identifier: "abc123"
     whitelist: true
+    # Set to false to keep this server running when it becomes empty.
+    # This only disables the automatic idle shutdown; /ppa clear and the
+    # proxy shutdown behaviour still apply.
+    auto_shutdown: true
 
   # Example for Shell (uncomment if using shell type):
   # survival:
   #   working_directory: "/path/to/server"  # Optional, defaults to current directory
   #   start: "docker compose start survival"
   #   stop: "docker compose stop survival"
+  #   auto_shutdown: true
 
 # WAITING SERVER CONFIGURATION
 # ---------------------------
