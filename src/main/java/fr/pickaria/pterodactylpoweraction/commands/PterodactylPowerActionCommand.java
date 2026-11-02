@@ -9,8 +9,7 @@ import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ProxyServer;
-import fr.pickaria.messager.Messager;
-import fr.pickaria.messager.components.Text;
+import fr.pickaria.pterodactylpoweraction.MessagesHelper;
 import fr.pickaria.pterodactylpoweraction.PterodactylPowerAction;
 import fr.pickaria.pterodactylpoweraction.ShutdownManager;
 import fr.pickaria.pterodactylpoweraction.configuration.ConfigurationDoctor;
@@ -29,14 +28,12 @@ public class PterodactylPowerActionCommand {
     private final Logger logger;
     private final ConfigurationLoader configurationLoader;
     private final ShutdownManager shutdownManager;
-    private final Messager messager;
 
     public PterodactylPowerActionCommand(ProxyServer proxy, Logger logger, ConfigurationLoader configurationLoader, ShutdownManager shutdownManager) {
         this.proxy = proxy;
         this.logger = logger;
         this.configurationLoader = configurationLoader;
         this.shutdownManager = shutdownManager;
-        this.messager = Messager.builder().build();
     }
 
     public BrigadierCommand createBrigadierCommand() {
@@ -65,7 +62,7 @@ public class PterodactylPowerActionCommand {
 
     private int executeHelp(CommandContext<CommandSource> context) {
         CommandSource source = context.getSource();
-        messager.info(source, "command.usage", new Text(Component.text("/" + COMMAND_NAME + " <reload|doctor|clear>")));
+        MessagesHelper.info(source, "command.usage", Component.text("/" + COMMAND_NAME + " <reload|doctor|clear>"));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -73,9 +70,9 @@ public class PterodactylPowerActionCommand {
         CommandSource source = context.getSource();
 
         if (configurationLoader.reload()) {
-            messager.info(source, "command.reload.success");
+            MessagesHelper.info(source, "command.reload.success");
         } else {
-            messager.error(source, "command.reload.error");
+            MessagesHelper.error(source, "command.reload.error");
         }
 
         return Command.SINGLE_SUCCESS;
@@ -84,14 +81,14 @@ public class PterodactylPowerActionCommand {
     private int executeDoctor(CommandContext<CommandSource> context) {
         ConfigurationDoctor doctor = new ConfigurationDoctor(proxy, logger);
         CommandSource source = context.getSource();
-        messager.info(source, "command.doctor.start");
+        MessagesHelper.info(source, "command.doctor.start");
         doctor.validateConfig(configurationLoader);
         return Command.SINGLE_SUCCESS;
     }
 
     private int executeClear(CommandContext<CommandSource> context) {
         CommandSource source = context.getSource();
-        messager.info(source, "command.clear.start");
+        MessagesHelper.info(source, "command.clear.start");
 
         shutdownManager.shutdownAll(ShutdownBehaviour.SHUTDOWN_EMPTY, getDelayFromContext(context));
 
